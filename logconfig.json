@@ -1,0 +1,35 @@
+{
+    "appenders": {
+        "dbChanges":{
+            "type": "file",
+            "filename": "log/dbChanges.log"
+        },
+        "login":{
+            "type": "file",
+            "filename": "log/login.log"},
+        "console": {
+            "type": "console"
+        },
+        "app": {
+            "type": "file",
+            "filename": "log/app.log",
+            "maxLogSize": 10485760,
+            "numBackups": 3
+        },
+        "errorFile": {
+            "type": "file",
+            "filename": "log/error.log"
+        },
+        "errors": {
+            "type": "logLevelFilter",
+            "level": "ERROR",
+            "appender": "errorFile"
+        }
+    },
+    "categories": {
+        "default": {
+            "appenders": ["app", "errors", "console", "dbChanges","login"],
+            "level": "DEBUG"
+        }
+    }
+}
