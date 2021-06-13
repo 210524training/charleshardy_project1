@@ -27,3 +27,4 @@ build/
 coverage/
 log/
 .env
+dynamoDbScripts/
