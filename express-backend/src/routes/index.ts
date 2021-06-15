@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import path from 'path';
 import userRouter from './user.router';
-import restaurantRouter from './restaurant.router';
+import reimbursementRouter from './reimbursement.router';
 import User from '../models/user';
 
 const baseRouter = Router();
@@ -26,9 +26,7 @@ baseRouter.get('/json', async (req, res) => {
 baseRouter.post('/login', async (req: express.Request<unknown, unknown, { username: string, password: string }, unknown, {}>, res) => {
   const { username, password } = req.body;
 
-  req.session.isLoggedIn = true;
-
-  req.session.user = new User(username, password, '', '', 'Customer');
+  // TODO: login impl
 
   res.json(req.session.user);
 });
@@ -49,6 +47,6 @@ export async function logout(req: express.Request, res: express.Response): Promi
 baseRouter.post('/logout', logout);
 
 baseRouter.use('/api/v1/users', userRouter);
-baseRouter.use('/api/v1/restaurants', restaurantRouter);
+baseRouter.use('/api/v1/restaurants', reimbursementRouter);
 
 export default baseRouter;
