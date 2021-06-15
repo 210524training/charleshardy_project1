@@ -7,5 +7,8 @@ export default class user{
         public lastName:string,
         public reimbursementFunds: number,
         public department?:string,
+        public supervisor?: string,
+        public departmentHead?: string,
+        public benCo?: string,
     ){}
 }
