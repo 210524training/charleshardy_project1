@@ -23,5 +23,6 @@ export default class reimbursement{
         public attachments: string[],
         public projectedReimbursement: number,
         public approval: Approval,
+        public resolved: boolean,
     ){}
 }
