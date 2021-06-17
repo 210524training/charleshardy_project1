@@ -1,19 +1,24 @@
 import express, { Router } from 'express';
-import path from 'path';
 import userRouter from './user.router';
 import reimbursementRouter from './reimbursement.router';
 import User from '../models/user';
-
+import userService from '../servicers/user.servicer';
+import httpCodes from 'http-status-codes';
 const baseRouter = Router();
 
 
 
 baseRouter.post('/login', async (req: express.Request<unknown, unknown, { username: string, password: string }, unknown, {}>, res) => {
   const { username, password } = req.body;
+  const user: User|undefined = await userService.signIn(username, password);
 
-  // TODO: login impl
-
-  res.json(req.session.user);
+  if(user){
+    req.session.isLoggedIn = true;
+    req.session.user = user;
+    res.status(httpCodes.OK).json(req.session.user);
+  } else {
+    res.status(httpCodes.FORBIDDEN).send();
+  }
 });
 
 export async function logout(req: express.Request, res: express.Response): Promise<void> {
@@ -24,7 +29,7 @@ export async function logout(req: express.Request, res: express.Response): Promi
     });
   }
 
-  res.status(202).send();
+  res.status(httpCodes.OK).send();
 }
 
 baseRouter.post('/logout', logout);
