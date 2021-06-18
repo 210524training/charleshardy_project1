@@ -1,13 +1,35 @@
+class Constants{
 //approval level
-export const approvalL0 = 0;
-export const approvalL1 = 1;
-export const approvalL2 = 2;
-export const approvalL3 = 3;
+approvalL0 = 0;
+approvalL1 = 1;
+approvalL2 = 2;
+approvalL3 = 3;
 
 //reimbursement percentages
-export const universityCoursePercentage = .8;
-export const seminarPercentage = .6;
-export const certificationPrepClassPercentage = .75;
-export const certificationPercentage = 1.0;
-export const technicalTrainingPercentage = .9;
-export const otherPercentage = .3;
+universityCoursePercentage:number = .8;
+seminarPercentage:number = .6;
+certificationPrepClassPercentage:number = .75;
+certificationPercentage:number = 1.0;
+technicalTrainingPercentage:number = .9;
+otherPercentage:number = .3;
+public priceCoverage=(plan: string):number=>{
+    switch(plan){
+        case 'university course':
+            return this.universityCoursePercentage;
+        case 'seminar':
+            return this.seminarPercentage;
+        case 'certification preparation class':
+            return this.certificationPrepClassPercentage;
+        case 'certification':
+            return this.certificationPercentage;
+        case 'technical training':
+            return this.technicalTrainingPercentage;
+        default:
+            return this.otherPercentage;
+    }
+}
+}
+
+const constants = new Constants(); 
+
+export default constants;
