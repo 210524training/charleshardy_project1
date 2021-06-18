@@ -115,12 +115,12 @@ class DAOReimbursement{
     }
 
     public async getAll(): Promise<Reimbursement[]>{
-        const params: AWS.DynamoDB.DocumentClient.QueryInput = {
+        const params: AWS.DynamoDB.DocumentClient.ScanInput = {
             TableName: 'reimbursement',
         };
 
         try {
-            const result = await docClient.query(params).promise();
+            const result = await docClient.scan(params).promise();
       
             if(result.Items) {
               return result.Items as Reimbursement[];
