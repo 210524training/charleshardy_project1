@@ -94,24 +94,24 @@ class DAOReimbursement{
     }
 
     public async getByApplicant(applicant: string): Promise<Reimbursement[]>{
-    const params: AWS.DynamoDB.DocumentClient.QueryInput = {
-      TableName: 'reimbursement',
-      KeyConditionExpression: '#applicant = :applicant',
-      ExpressionAttributeNames: {
-        '#applicant': 'applicant',
-      },
-      ExpressionAttributeValues: { ':applicant': applicant },
-    };
-    try {
-      const result = await docClient.query(params).promise();
+        const params: AWS.DynamoDB.DocumentClient.QueryInput = {
+        TableName: 'reimbursement',
+        KeyConditionExpression: '#applicant = :applicant',
+        ExpressionAttributeNames: {
+            '#applicant': 'applicant',
+        },
+        ExpressionAttributeValues: { ':applicant': applicant },
+        };
+        try {
+        const result = await docClient.query(params).promise();
 
-      if(result.Items) {
-        return result.Items as Reimbursement[];
-      }
-    } catch{
-      return [];
-    }
-    return [];
+        if(result.Items) {
+            return result.Items as Reimbursement[];
+        }
+        } catch{
+        return [];
+        }
+        return [];
     }
 
     public async getAll(): Promise<Reimbursement[]>{
@@ -126,6 +126,27 @@ class DAOReimbursement{
               return result.Items as Reimbursement[];
             }
         } catch {
+            return [];
+        }
+        return [];
+    }
+
+    public async getByCondition(condtionName: string, conditionValue: string): Promise<Reimbursement[]>{
+        const params: AWS.DynamoDB.DocumentClient.QueryInput = {
+        TableName: 'reimbursement',
+        FilterExpression: "#condition = :condVal",
+        ExpressionAttributeNames: {
+            '#condition': condtionName,
+        },
+        ExpressionAttributeValues: { ':condVal': conditionValue },
+        };
+        try {
+            const result = await docClient.query(params).promise();
+        
+            if(result.Items) {
+                return result.Items as Reimbursement[];
+            }
+        } catch{
             return [];
         }
         return [];
