@@ -22,6 +22,7 @@ class UserService{
             user.firstName,
             user.lastName,
             user.reimbursementFunds,
+            user.department,
             user.supervisor,
             user.departmentHead,
             user.benCo
