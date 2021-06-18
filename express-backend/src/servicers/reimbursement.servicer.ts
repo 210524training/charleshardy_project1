@@ -1,8 +1,30 @@
 import DAOReimbursement from '../DAO/DAOReimbursement';
 import Reimbursement from '../models/reimbursement';
-
+import DAOUser from '../DAO/DAOUser';
+import User from '../models/user';
+import constants from '../constants';
 class ReimbursementService{
+    private async calculateProjectedReimbursement(username:string, price:number, plan:string): Promise<number> {
+        const user: User|null= await DAOUser.exists(username);
+
+        if(!user){
+            return 0;
+        }
+        const priceCoverage:number = price* constants.priceCoverage(plan);
+        const totalFunds = user.reimbursementFunds
+        const projectedReimbursement = ((priceCoverage>totalFunds)?(priceCoverage):(totalFunds));
+
+        if(projectedReimbursement>=0) return projectedReimbursement
+        return 0;
+    }
+
     public async makeReimbursementRequest(reimbursement: Reimbursement): Promise<boolean>{
+        const projection = await this.calculateProjectedReimbursement(
+            reimbursement.applicant,
+            reimbursement.cost,
+            reimbursement.activity
+        );
+        reimbursement.projectedReimbursement = projection;
         return await DAOReimbursement.add(reimbursement);
     }
 
