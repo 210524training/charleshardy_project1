@@ -22,17 +22,29 @@ class DAOUser{
         }
     }
     
-    public async get(username: string, password: string): Promise<User|undefined> {
-        const params: AWS.DynamoDB.DocumentClient.QueryInput = {
-            TableName: 'TRMS_user',
-            IndexName: 'username-index',
-            KeyConditionExpression: 'username = :username',
-            FilterExpression: 'password = :password',
-            ExpressionAttributeValues: {
-            ':password': password,
-            ':username': username,
-            },
-        };
+    public async get(username: string, password?: string): Promise<User|undefined> {
+        let params: AWS.DynamoDB.DocumentClient.QueryInput
+
+        if(password){ 
+            params = {
+                TableName: 'TRMS_user',
+                IndexName: 'username-index',
+                KeyConditionExpression: 'username = :username',
+                FilterExpression: 'password = :password',
+                ExpressionAttributeValues: {
+                ':password': password,
+                ':username': username,
+                },
+            };
+        } else {
+            params = {
+                TableName: 'TRMS_user',
+                IndexName: 'username-index',
+                KeyConditionExpression: 'username = :username',
+                ExpressionAttributeValues: { ':username': username },
+            };
+        }
+
         try {
             const result = await docClient.query(params).promise();
             if(result.Items && result.Items.length > 0) {
@@ -62,6 +74,45 @@ class DAOUser{
         } catch(error) {
             // TODO: log error
             return true;
+        }
+    }
+    
+    public async getAll(): Promise<User[]>{
+        const params: AWS.DynamoDB.DocumentClient.ScanInput = {
+            TableName: 'TRMS_user',
+        };
+
+        try {
+            const result = await docClient.scan(params).promise();
+      
+            if(result.Items) {
+              return result.Items as User[];
+            }
+        } catch {
+            return [];
+        }
+        return [];
+    }
+
+    public async remove(user: User): Promise<boolean> {
+        const params: AWS.DynamoDB.DocumentClient.DeleteItemInput = {
+            TableName: 'TRMS_user',
+            Key: {
+              user: user.username,
+              role: user.role,
+            },
+            ReturnValues: 'ALL_OLD',
+            };
+      
+        try {
+            const result = await docClient.delete(params).promise();
+            if(result) {
+            if(result.Attributes) return true;
+            }
+            return false;
+        } catch(err) {
+            // TODO: log error
+            return false;
         }
     }
 }

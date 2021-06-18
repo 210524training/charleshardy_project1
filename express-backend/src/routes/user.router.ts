@@ -1,36 +1,61 @@
 import { Router } from 'express';
+import User from '../models/user';
+import userService from '../servicers/user.servicer';
+import httpCodes from 'http-status-codes';
 
 const userRouter = Router();
 
 userRouter.get('/', async (req, res) => {
-  console.log('Reached our user router get all function');
-
   if(!req.session.isLoggedIn || !req.session.user) {
     throw new Error('You must be logged in to access this functionality');
   }
-
-  // Past the above if statement, we have confirmed that the user is logged in
-
-  // Pretend that we have some actual data
-  // This is an array of just this 1 user
-  // But this should instead use our DynamoDB DocumentClient to fetch data
-  res.json([req.session.user]);
+  const users = await userService.getAll();
+  res.status(httpCodes.OK).json(users);
 });
 
-userRouter.get('/:id', async (req, res) => {
-  // TODO: Implement the GET user by ID endpoint
+userRouter.get('/:username', async (req, res) => {
+  if(!req.session.isLoggedIn || !req.session.user) {
+    throw new Error('You must be logged in to access this functionality');
+  }
+  const {username} = req.params;
+  const user: User|undefined = await userService.getByUsername(username);
+  if(user){
+    res.status(httpCodes.OK).json(user);
+  }else{
+    res.status(httpCodes.NOT_FOUND).send();
+  }
 });
 
 userRouter.post('/', async (req, res) => {
-  // TODO: Implement the Create user endpoint
+  const result = await userService.addUser(req.body);
+  if(result){
+    res.status(httpCodes.OK).json(result);
+  }else{
+    res.status(httpCodes.BAD_REQUEST).json(result);
+  }
 });
 
 userRouter.put('/', async (req, res) => {
-  // TODO: Implement the Update user endpoint
+  if(!req.session.isLoggedIn || !req.session.user) {
+    throw new Error('You must be logged in to access this functionality');
+  }
+  res.status(httpCodes.NOT_IMPLEMENTED).send();
 });
 
-userRouter.delete('/:id', async (req, res) => {
+userRouter.delete('/:username', async (req, res) => {
+  if(!req.session.isLoggedIn || !req.session.user) {
+    throw new Error('You must be logged in to access this functionality');
+  }
   // TODO: Implement the Delete user by ID endpoint
+  const message={result:'user does not exist'};
+  const {username} = req.params;
+  const user: User|undefined = await userService.getByUsername(username);
+  if (user){
+    const result = await userService.remove(user);
+    message.result = 'user deleted';
+  }
+  
+  res.status(httpCodes.OK).json(message);
 });
 
 export default userRouter;
