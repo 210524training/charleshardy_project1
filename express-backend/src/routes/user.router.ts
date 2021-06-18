@@ -26,6 +26,18 @@ userRouter.get('/:username', async (req, res) => {
   }
 });
 
+userRouter.put('/', async (req, res) => {
+  if(!req.session.isLoggedIn || !req.session.user) {
+    throw new Error('You must be logged in to access this functionality');
+  }
+  const result = await userService.update(req.body);
+  if(result){
+    res.status(httpCodes.OK).json(result);
+  }else{
+    res.status(httpCodes.BAD_REQUEST).json(result);
+  }
+});
+
 userRouter.post('/', async (req, res) => {
   const result = await userService.addUser(req.body);
   if(result){
@@ -35,12 +47,6 @@ userRouter.post('/', async (req, res) => {
   }
 });
 
-userRouter.put('/', async (req, res) => {
-  if(!req.session.isLoggedIn || !req.session.user) {
-    throw new Error('You must be logged in to access this functionality');
-  }
-  res.status(httpCodes.NOT_IMPLEMENTED).send();
-});
 
 userRouter.delete('/:username', async (req, res) => {
   if(!req.session.isLoggedIn || !req.session.user) {
