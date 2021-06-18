@@ -6,6 +6,14 @@ class UserService{
         return await DAOUser.get(username, password);
     }
 
+    public async update(user: User): Promise<boolean>{
+        return await DAOUser.update(user);
+    }
+
+    public async get(username: string): Promise<User|null>{
+        return await DAOUser.exists(username);
+    }
+
     public async getAll(): Promise<User[]>{
         return await DAOUser.getAll();
     }
