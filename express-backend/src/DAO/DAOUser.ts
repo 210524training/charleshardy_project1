@@ -57,7 +57,7 @@ class DAOUser{
         }
     }
     
-    public async exists(username: string): Promise<boolean> {
+    public async exists(username: string): Promise<User|null> {
         const params: AWS.DynamoDB.DocumentClient.QueryInput = {
             TableName: 'TRMS_user',
             IndexName: 'username-index',
@@ -68,12 +68,12 @@ class DAOUser{
         try {
             const result = await docClient.query(params).promise();
             if(result.Items) {
-            return result.Items.length > 0;
+                return result.Items[0] as User;
             }
-            return true;
+            return null;
         } catch(error) {
             // TODO: log error
-            return true;
+            return null;
         }
     }
     
@@ -113,6 +113,33 @@ class DAOUser{
         } catch(err) {
             // TODO: log error
             return false;
+        }
+    }
+
+    public async update(user: User): Promise<boolean> {
+        const params: AWS.DynamoDB.DocumentClient.PutItemInput = {
+            TableName: 'TRMS_user',
+            Item: {
+              ...user,
+            },
+            ConditionExpression: '#r = :role and username = :username',
+            ExpressionAttributeNames: {
+                '#r': 'role',
+            },
+            ExpressionAttributeValues: {
+              ':role': user.role,
+              ':username': user.username,
+            },
+        };
+      
+        try {
+            await docClient.put(params).promise();
+    
+        return true;
+        } catch(error) {
+            // TODO: log error
+            console.log(error);
+        return false;
         }
     }
 }
