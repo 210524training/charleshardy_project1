@@ -3,6 +3,7 @@ import {docClient} from './connection';
 import Reimbursement from '../models/reimbursement'
 import { v4 } from 'uuid';
 import reimbursement from '../models/reimbursement';
+import { error } from 'console';
 
 class DAOReimbursement{
     public async add(reimbursement:Reimbursement): Promise<boolean>{
@@ -52,7 +53,7 @@ class DAOReimbursement{
             Item: {
               ...reimbursement,
             },
-            ConditionExpression: 'id = :id and applicant == :applicant',
+            ConditionExpression: 'id = :id AND applicant = :applicant',
             ExpressionAttributeValues: {
               ':id': reimbursement.id,
               ':applicant': reimbursement.applicant,
@@ -65,6 +66,7 @@ class DAOReimbursement{
         return true;
         } catch(error) {
             // TODO: log error
+            console.log(error);
         return false;
         }
     }
@@ -92,6 +94,8 @@ class DAOReimbursement{
         }
 
     }
+
+    
 
     public async getByApplicant(applicant: string): Promise<Reimbursement[]>{
         const params: AWS.DynamoDB.DocumentClient.QueryInput = {
@@ -132,7 +136,7 @@ class DAOReimbursement{
     }
 
     public async getByCondition(condtionName: string, conditionValue: string): Promise<Reimbursement[]>{
-        const params: AWS.DynamoDB.DocumentClient.QueryInput = {
+        const params: AWS.DynamoDB.DocumentClient.ScanInput = {
         TableName: 'reimbursement',
         FilterExpression: "#condition = :condVal",
         ExpressionAttributeNames: {
@@ -141,13 +145,13 @@ class DAOReimbursement{
         ExpressionAttributeValues: { ':condVal': conditionValue },
         };
         try {
-            const result = await docClient.query(params).promise();
+            const result = await docClient.scan(params).promise();
         
             if(result.Items) {
                 return result.Items as Reimbursement[];
             }
-        } catch{
-            return [];
+        } catch(error) {
+            console.log(error);
         }
         return [];
     }
