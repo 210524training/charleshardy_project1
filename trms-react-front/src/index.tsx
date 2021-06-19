@@ -5,6 +5,11 @@ import App from './App';
 import { store } from './app/store';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
+import dotenv from 'dotenv';
+import "./css/colorschema.css";
+import "./css/misc.css";
+
+dotenv.config({});
 
 ReactDOM.render(
   <React.StrictMode>
