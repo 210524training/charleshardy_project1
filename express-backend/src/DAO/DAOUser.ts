@@ -57,6 +57,31 @@ class DAOUser{
         }
     }
     
+    public async getUsersbyRole(role: string): Promise<User[]>{
+       const params: AWS.DynamoDB.DocumentClient.QueryInput={
+            TableName: 'TRMS_user',
+            KeyConditionExpression: '#r = :role',
+            ExpressionAttributeNames: {
+                '#r': 'role',
+            },
+            ExpressionAttributeValues: {
+            ':role': role,
+            },
+        };
+
+        try {
+            const result = await docClient.query(params).promise();
+            if(result.Items && result.Items.length > 0) {
+                return result.Items as User[];
+            }
+            return [];
+        } catch(error) {
+            // TODO: log error
+            return [];
+        }
+
+    }
+
     public async exists(username: string): Promise<User|null> {
         const params: AWS.DynamoDB.DocumentClient.QueryInput = {
             TableName: 'TRMS_user',

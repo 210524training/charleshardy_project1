@@ -40,6 +40,10 @@ class UserService{
     public async remove(user: User): Promise<boolean>{
         return await DAOUser.remove(user);
     }
+
+    public async getUsersbyRole(role: string){
+        return await DAOUser.getUsersbyRole(role);
+    }
 }
 
 const userService = new UserService();

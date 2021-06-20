@@ -13,17 +13,28 @@ userRouter.get('/', async (req, res) => {
   res.status(httpCodes.OK).json(users);
 });
 
-userRouter.get('/:username', async (req, res) => {
-  if(!req.session.isLoggedIn || !req.session.user) {
-    throw new Error('You must be logged in to access this functionality');
-  }
-  const {username} = req.params;
-  const user: User|undefined = await userService.getByUsername(username);
-  if(user){
-    res.status(httpCodes.OK).json(user);
+userRouter.get('/:selector', async (req, res) => {
+
+  const {selector} = req.params;
+  const value = req.body.value;
+  if(selector === 'username'){
+    const user: User|undefined = await userService.getByUsername(value);
+    if(user){
+      res.status(httpCodes.OK).json(user);
+    }else{
+      res.status(httpCodes.NOT_FOUND).send();
+    }
+  } else if(selector === 'role'){
+    const users = await userService.getUsersbyRole(value);
+    if(users.length>0){
+      res.status(httpCodes.OK).json(users);
+    }else{
+      res.status(httpCodes.NOT_FOUND).send();
+    }
   }else{
-    res.status(httpCodes.NOT_FOUND).send();
+    res.status(httpCodes.BAD_REQUEST).send();
   }
+  
 });
 
 userRouter.put('/', async (req, res) => {
