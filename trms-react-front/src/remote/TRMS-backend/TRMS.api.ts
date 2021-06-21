@@ -5,10 +5,8 @@ import Reimbursement from "../../models/reimbursement";
 
 
 export const getRelevantRembursements=  async(user:User)=>{
-  const response = await TrmsClient.get<Reimbursement[]>('api/v1/reimbursements/',{
-    params: {
-      username: user.username
-    },
+  const response = await TrmsClient.get<Reimbursement[]>('api/v1/reimbursements/'+user.username,{
+    
     data: {
       role: user.role
     }

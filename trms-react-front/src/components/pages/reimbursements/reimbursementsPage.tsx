@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useHistory } from 'react-router-dom';
 import {useAppSelector } from '../../../hooks';
 import {selectUser, UserState } from '../../../slices/user.slice';
@@ -9,29 +9,41 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
     const history = useHistory();
     const user = useAppSelector<UserState>(selectUser);
 
-    const [reimbursements,setReimbursements] = useState<JSX.Element[]>([]);
+    const [reimbursements,setReimbursements] = useState<JSX.Element[]>([<span key="reim:default">Loading reimbursements...</span>]);
 
     if(!user){ history.push('/');}
 
-    const getReimbursements = async (): Promise<JSX.Element[]>=>{
-        if(!user) return [];
-        const reims = await getRelevantRembursements(user);
-          const newReims:JSX.Element[] = [];
-          reims.forEach(reim => {
-            newReims.push(
-                <div className="container border border-2 bg-light secondary-color-1-border p-3 rounded" key={`reim-id:${reim.id}`}>
-                    {
-                    `activity:${reim.activity} reason:${reim.reason} submission-date:${reim.submissiondate}`
-                    }
-                    <NavLink className="navbar-brand " to={`/reimbursments/:${reim.id}`}>view here</NavLink>
-                </div>
-            );
-          });
-          setReimbursements( newReims);
-        return newReims;
-    };
+    
+    useEffect(()=>{
+        const getReimbursements = async (): Promise<JSX.Element[]>=>{
+            if(!user) return [];
+            const reims = await getRelevantRembursements(user);
+              const newReims:JSX.Element[] = [];
+              reims.forEach((reim: Reimbursement) => {
+                newReims.push(
+                    <div className="container border border-2 bg-light secondary-color-1-border p-3 rounded" key={`reim-id:${reim.id}`}>
+                        {
+                        `activity:${reim.activity} reason:${reim.reason} submission-date:${reim.submissiondate}`
+                        }
+                        <NavLink className="navbar-brand " to={`/reimbursments/${reim.id}`}>view here</NavLink>
+                    </div>
+                );
+              });
+            return newReims;
+        };
+    
+        const fetchData = async () => {
 
-    getReimbursements();
+            let isMounted = true;               // note mutable flag
+            const newReims = await getReimbursements()
+            console.log(newReims);
+            if (isMounted) setReimbursements( newReims);;    // add conditional check
+            return () => { isMounted = false }; // use cleanup to toggle value, if unmounted
+        }
+        fetchData();
+
+});
+
     
 
     return(

@@ -1,4 +1,3 @@
-import { string } from "prop-types";
 import { useParams } from "react-router-dom";
 
 
@@ -7,7 +6,7 @@ const component: React.FC = (): JSX.Element => {
     const params = useParams<{id:string}>();;
     return(
         <>
-        {`veiwing reimbursement: ${params.id}`}
+        {`veiwing reimbursement ${params.id}}`}
         </>
     );
 }

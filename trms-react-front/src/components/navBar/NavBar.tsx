@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React from 'react';
-import { NavLink, useHistory, useParams } from 'react-router-dom';
+import { NavLink, useHistory} from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { logoutAsync, selectUser, UserState } from '../../slices/user.slice';
 
@@ -51,7 +51,7 @@ const navbar: React.FC<unknown> = () => {
                 ) : (
                   <>
                     <li className="nav-item nav-link text-light circle">
-                      <button type="button" className="btn btn-primary primary-color" onClick={handleLogout}>Logout</button>
+                      <button type="button" className="btn btn-primary primary-color" onClick={() => handleLogout()}>Logout</button>
                     </li>
                   </>
                 )
