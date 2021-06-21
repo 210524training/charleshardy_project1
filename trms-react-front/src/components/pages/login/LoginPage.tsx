@@ -33,7 +33,7 @@ const login: React.FC = (): JSX.Element => {
   return(
     <>
       <div className="spacer"/>
-      <div className="container w-50 secondary-color-2 p-3 rounded">
+      <div className="container w-50 secondary-color-2 border border-2 secondary-color-1-border p-3 rounded">
         <form onSubmit={handleFormSubmit} > 
           <div className="form-group">
             <label htmlFor="InputUsername">User name:</label>

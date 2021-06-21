@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { ChangeEvent, FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import {getBenCos,getDhs,getsupervisors, registerUser} from "../../../remote/TRMS-backend/TRMS.api"
+import {getBenCos,getDhs,getsupervisors, registerUser} from "../../../remote/TRMS-backend/TRMS.api";
 import DeparmentSelect from "./depReg";
 import User from "../../../models/user";
 import { useAppDispatch } from '../../../hooks';
@@ -169,7 +169,7 @@ const register: React.FC = (): JSX.Element => {
   return(
     <>
     <div className="spacer"/>
-        <div className="container w-75 secondary-color-2 p-3 rounded">
+        <div className="container w-75 secondary-color-2 border border-2 secondary-color-1-border p-3 rounded">
             <form onSubmit={handleFormSubmit}>
                 <div className="form-group">
                     <label htmlFor="inputfname">First name:</label>
