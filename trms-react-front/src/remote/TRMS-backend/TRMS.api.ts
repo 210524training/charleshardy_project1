@@ -1,8 +1,21 @@
 import User from "../../models/user";
 import TrmsClient from "./TRMS.client";
 import httpCodes from 'http-status-codes';
-import trmsClient from "./TRMS.client";
-import user from "../../models/user";
+import Reimbursement from "../../models/reimbursement";
+
+
+export const getRelevantRembursements=  async(user:User)=>{
+  const response = await TrmsClient.get<Reimbursement[]>('api/v1/reimbursements/',{
+    params: {
+      username: user.username
+    },
+    data: {
+      role: user.role
+    }
+  });
+
+  return response.data as Reimbursement[];
+}
 
 export const registerUser = async(user:User)=>{
   const response = await TrmsClient.post<boolean>('api/v1/users',{
