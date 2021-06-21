@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { NavLink, useHistory } from 'react-router-dom';
 import {useAppSelector } from '../../../hooks';
 import {selectUser, UserState } from '../../../slices/user.slice';
 import {getRelevantRembursements} from "../../../remote/TRMS-backend/TRMS.api";
@@ -18,7 +18,14 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
         const reims = await getRelevantRembursements(user);
           const newReims:JSX.Element[] = [];
           reims.forEach(reim => {
-            newReims.push(<span key={`reim-id:${reim.id}`}>{`activity:${reim.activity} reason:${reim.reason} submission-date:${reim.submissiondate}`}</span>)
+            newReims.push(
+                <div className="container border border-2 bg-light secondary-color-1-border p-3 rounded" key={`reim-id:${reim.id}`}>
+                    {
+                    `activity:${reim.activity} reason:${reim.reason} submission-date:${reim.submissiondate}`
+                    }
+                    <NavLink className="navbar-brand " to={`/reimbursments/:${reim.id}`}>view here</NavLink>
+                </div>
+            );
           });
           setReimbursements( newReims);
         return newReims;
