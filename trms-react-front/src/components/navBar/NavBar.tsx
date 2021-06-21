@@ -10,7 +10,6 @@ import { logoutAsync, selectUser, UserState } from '../../slices/user.slice';
 const navbar: React.FC<unknown> = () => {
   const history = useHistory();
   const dispatch = useAppDispatch();
-  // We "Select" the User data from the state
   const user = useAppSelector<UserState>(selectUser);
 
   const handleLogout = async() => {
@@ -31,12 +30,13 @@ const navbar: React.FC<unknown> = () => {
           </button>
           <div className="collapse navbar-collapse" id="navbarCollapse">
             <ul className="navbar-nav">
-              <li className="nav-item">
-                <NavLink className="nav-link text-light" to="/restaurants">Restaurants</NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink className="nav-link text-light" to="/clicker">Clicker</NavLink>
-              </li>
+              { !user ? (<></>):(
+                <>
+                  <li className="nav-item">
+                  <NavLink className="nav-link text-light" to="/reimbursments">Reimbursements</NavLink>
+                  </li>
+                </>)
+              }
             </ul>
             <ul className="navbar-nav ms-auto">
               { !user ? (
@@ -49,9 +49,11 @@ const navbar: React.FC<unknown> = () => {
                   </li>
                 </>
                 ) : (
-                <li className="nav-item nav-link text-light circle">
-                  <button type="button" className="btn btn-primary primary-color" onClick={handleLogout}>Logout</button>
-                </li>
+                  <>
+                    <li className="nav-item nav-link text-light circle">
+                      <button type="button" className="btn btn-primary primary-color" onClick={handleLogout}>Logout</button>
+                    </li>
+                  </>
                 )
               }
             </ul>
