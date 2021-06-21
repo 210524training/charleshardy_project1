@@ -13,7 +13,7 @@ userRouter.get('/', async (req, res) => {
   res.status(httpCodes.OK).json(users);
 });
 
-userRouter.get('/:selector', async (req, res) => {
+userRouter.post('/:selector', async (req, res) => {
 
   const {selector} = req.params;
   const value = req.body.value;
