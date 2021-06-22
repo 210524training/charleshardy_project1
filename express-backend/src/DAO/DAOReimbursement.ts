@@ -95,6 +95,8 @@ class DAOReimbursement{
 
     }
 
+   
+
     
 
     public async getByApplicant(applicant: string): Promise<Reimbursement[]>{
@@ -112,7 +114,8 @@ class DAOReimbursement{
         if(result.Items) {
             return result.Items as Reimbursement[];
         }
-        } catch{
+        } catch(error){
+            console.log(error+"\n"+applicant);
         return [];
         }
         return [];

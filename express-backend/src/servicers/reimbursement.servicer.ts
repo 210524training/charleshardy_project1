@@ -44,6 +44,10 @@ class ReimbursementService{
         return await DAOReimbursement.get(username, id);
     }
 
+    public async getById(id: string): Promise<Reimbursement|null>{
+        const result = await DAOReimbursement.getByCondition("id",id);
+        return (result.length > 0 )? (result[0]): (null);
+    }
 
     public async getByApprover(
         username: string,

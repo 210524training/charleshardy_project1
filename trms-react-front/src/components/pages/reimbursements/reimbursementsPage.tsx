@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useEffect, useState } from 'react';
 import { NavLink, useHistory } from 'react-router-dom';
@@ -36,13 +37,12 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
 
             let isMounted = true;               // note mutable flag
             const newReims = await getReimbursements()
-            console.log(newReims);
-            if (isMounted) setReimbursements( newReims);;    // add conditional check
+            if (isMounted) setReimbursements( newReims);    // add conditional check
             return () => { isMounted = false }; // use cleanup to toggle value, if unmounted
         }
         fetchData();
 
-});
+    },[]);
 
     
 
