@@ -1,18 +1,21 @@
-import { FormEvent, FormEventHandler } from "react";
-import { uploadFile } from "../../../remote/TRMS-backend/TRMS.api";
+import { FormEvent,useState } from "react";
 import FileUploader from '../../filestuff/fileuploader';
-const component: React.FC = (): JSX.Element => {
+const Component: React.FC = (): JSX.Element => {
+    const [files,setFiles]= useState<{fileName: string,fileID:string}[]>([]);
     const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
     }
     return(
         <>
         <form onSubmit={handleFormSubmit}>
-            <FileUploader/>
+            <FileUploader uploadedFiles={files} setUploadedFiles={setFiles} />
         </form>
+        uploaded these {
+            files.map(file =>{return<>{`name:${file.fileName} //// ID:${file.fileID}`}</>})
+        }
         </>
     );
 }
 
-export default component;
+export default Component;
 
