@@ -20,7 +20,7 @@ export default class reimbursement{
         public location: {state:string, city:string} | 'remote',
         public evaluation: 'presentation'| 'grade',
         public reason: string,
-        public attachments: string[],
+        public attachments: {fileID:string,fileName:string}[],
         public projectedReimbursement: number,
         public approval: Approval,
         public resolved: boolean,

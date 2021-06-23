@@ -1,47 +1,60 @@
 import AWS from 'aws-sdk';
-import {S3} from './connection'
+import {S3} from './connection';
+import { v4 } from 'uuid';
 AWS.config.update({ region: 'us-east-2' });
-
-export class DAOFile{
+class DAOFile{
 
     constructor(private BUCKET: string, private FOLDER: string){}
     
-    public async uploadFile(file: File, id: string) {
-        
+    public async uploadFile(file:Express.Multer.File):Promise<string|undefined> {
+        const newID : string = v4()+file.originalname; 
         const params : AWS.S3.PutObjectRequest  = {
+          
+          Key: newID,
+          Body: file.buffer,
+          ContentType: file.mimetype,
           Bucket: this.BUCKET,
-          Key: this.FOLDER + id,
-          Body: file,
-          ACL: 'public-read'
-        };
-    
-        await S3.upload(params, function (err, data) {
-          if (err) {
-            console.log('There was an error uploading your file: ', err);
-            return false;
-          }
-          console.log('Successfully uploaded file.', data);
-          return true;
-        });
+          ACL: 'authenticated-read'
+        }; 
 
-        
+        const result = await S3.upload(params, function(err, data) {
+          console.log(err, data);
+          if (err){
+            return undefined;
+          }
+          return newID;
+          }).promise();
+        return newID;
     }
 
-    public async downloadFile(file: File, id: string): Promise<File | undefined>{
+    public async getSignedUrl(id: string):Promise<string|boolean> {
+      const params = {Bucket: this.BUCKET, Key: id};
+      try{
+        const result = await S3.getSignedUrl('getObject', params);
+        return result;
+      }catch(err){
+        console.log(err);
+        return false;
+      }
+      
+    }
+    public async downloadFile(id: string): Promise<AWS.S3.Body | undefined>{
         // const outFile : File | undefined; 
         const params : AWS.S3.GetObjectRequest  = {
             Bucket: this.BUCKET,
             Key: this.FOLDER + id,
         };
-      
-        await S3.getObject(params, function (err, data) {
-        if (err) {
-            console.log('There was an error getting your file: ', err);
-            return false;
-        }
-       
 
-        });
-        return undefined;
+        try {
+        const fileOut = await S3.getObject(params).promise();
+          return (fileOut.Body);
+
+        } catch (err) {
+          console.log(err);
+          return undefined;
+        }
+        //return undefined;
     }
 }
+const dao = new DAOFile("trms-bucket-charles-hardy","")
+export default dao;

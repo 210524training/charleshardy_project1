@@ -4,6 +4,39 @@ import httpCodes from 'http-status-codes';
 import Reimbursement from "../../models/reimbursement";
 
 
+
+export const uploadFile= async(formData:FormData):Promise<string|undefined>=>{
+  try{
+    console.log("HERE "+formData.entries);
+    const result = await TrmsClient.post<{id:string}>('api/v1/files/',  formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    if(result){
+      return result.data.id;
+    }
+    return undefined
+    
+  } catch (err) {
+    console.error(err);
+    return undefined;
+  }
+}
+export const downloadFileLink = async (id: string, filename: string)=>{
+  try{
+    const result = await TrmsClient.get<{url:string}>('api/v1/files/'+id, {
+    
+    //params: {id: id}
+    });
+    console.log(result.data);
+    console.log(result.data);
+    return result.data.url;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+}
 export const getReimbursementAPI:((id:string, username: string) =>Promise<{code:number, reimbursement:Reimbursement|undefined}>)= 
   async(id:string, username: string)=>{
     try{

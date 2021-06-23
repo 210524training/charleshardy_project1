@@ -4,6 +4,8 @@ import { useAppSelector } from "../../../hooks";
 import Reimbursement from "../../../models/reimbursement";
 import Approval from "../../../models/approval";
 import Chat from "../../../models/chat";
+import FileLink from "../../filestuff/fileLink";
+import {downloadFileLink} from "../../../remote/TRMS-backend/TRMS.api"
 import { getReimbursementAPI } from "../../../remote/TRMS-backend/TRMS.api";
 import { selectUser, UserState } from "../../../slices/user.slice";
 // import reimbursement from "../../../models/reimbursement";
@@ -19,6 +21,8 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
     const [msgOut,setMsgOut] = useState<string|undefined>(undefined);
     const history = useHistory();
     const user = useAppSelector<UserState>(selectUser);
+
+    const [fileLinks,setFileLinks]=useState<JSX.Element[]>([<span key="link:default">Loading links...</span>]);
     
     if(!user){ history.push('/');}
 
@@ -38,6 +42,26 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
             
             return{code:404,reimbursement:undefined};
         });
+
+        const getLinks =async ():Promise<JSX.Element[]>=>{
+            if(reimbursement){
+                const links:JSX.Element[] = [];
+                for(let i = 0; i<reimbursement.attachments.length; i++){
+                    let attachment = reimbursement.attachments[i];
+                    const url = await downloadFileLink(attachment.fileID,attachment.fileName);
+                    console.log("LINK:"+url);
+                    if(url){
+                        links.push(<FileLink key={url} fileName={attachment.fileName} url={url}/>);
+                    }
+                }
+                console.log("NUM-LINKs "+links.length);
+                return (links);
+
+            }else{
+                return[];
+            }
+            
+        }
         const loadReimbursement = (async()=>{
             let isMounted = true;               // note mutable flag
             if (isMounted){
@@ -52,6 +76,8 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                     if(newReimbursementResult.reimbursement.approval){
                         setChat(newReimbursementResult.reimbursement.approval.chat);
                     }
+                    const links  = await getLinks(); 
+                    setFileLinks(links);
                 }
             }     // add conditional check
             return () => { isMounted = false }; // use cleanup to toggle value, if unmounted
@@ -78,6 +104,11 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                                 <p><span className="fw-bold">Benefits Coordinator:</span> {`${reimbursement.benCo}`}</p>
                                 <p><span className="fw-bold">Submission Date:</span> {`${reimbursement.submissiondate}`}</p>
                                 <p><span className="fw-bold">Event Date:</span> {`${reimbursement.eventdate}`}</p>
+                                <p><span className="fw-bold">Attachment(s):</span> {
+                                    (reimbursement.attachments.length>0)?(
+                                        fileLinks
+                                    ):('none.')
+                                    }</p>
                             </div>
                             <div className="col">
                                 <p><span className="fw-bold">Activity:</span> {`${reimbursement.activity}`}</p>
@@ -167,11 +198,11 @@ const MessageBox: React.FC<props> = ({chat}:props)=>{
 
 
 
-function getRoleLevel(role: string): number{
+/*function getRoleLevel(role: string): number{
     const elevatedRoles=['supervisor', 'department head','benefits coordinator'];
     const index =  elevatedRoles.indexOf(role);
     return index+1;
-}
+}*/
 
 
 export default ReimbursementPage;

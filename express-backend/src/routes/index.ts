@@ -4,6 +4,7 @@ import reimbursementRouter from './reimbursement.router';
 import User from '../models/user';
 import userService from '../servicers/user.servicer';
 import httpCodes from 'http-status-codes';
+import fileRouter from './file.router';
 const baseRouter = Router();
 
 
@@ -36,6 +37,7 @@ export async function logout(req: express.Request, res: express.Response): Promi
 baseRouter.post('/logout', logout);
 
 baseRouter.use('/api/v1/users', userRouter);
+baseRouter.use('/api/v1/files', fileRouter);
 baseRouter.use('/api/v1/reimbursements', reimbursementRouter);
 
 export default baseRouter;
