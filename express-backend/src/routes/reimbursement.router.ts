@@ -62,7 +62,11 @@ reimbursementRouter.put('/', async (req, res) => {
   if(!req.session.isLoggedIn || !req.session.user) {
     throw new Error('You must be logged in to access this functionality');
   }
-  const result = await reimbursementService.updateReimbursement(req.body);
+  console.log("body "+req.body.reimbursement.approval);
+  const {reimbursement} = req.body;
+
+  const result = await reimbursementService.updateReimbursement(reimbursement);
+  console.log("newREIM: "+reimbursement.approval.chat);
   if(result){
     res.status(httpCodes.OK).json(result);
   }else{

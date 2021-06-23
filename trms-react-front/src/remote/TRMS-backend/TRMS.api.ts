@@ -3,6 +3,19 @@ import TrmsClient from "./TRMS.client";
 import httpCodes from 'http-status-codes';
 import Reimbursement from "../../models/reimbursement";
 
+export const updateReimbursement = async (reimbursement:Reimbursement): Promise<boolean> => {
+  try{
+    console.log("updating reimbursement" + reimbursement.id);
+    const result = await TrmsClient.put<boolean>('api/v1/reimbursements/',{
+      reimbursement,
+    });
+    return result.data;
+
+  }catch(err){
+    console.log(err);
+    return false;
+  }
+}
 
 
 export const uploadFile= async(formData:FormData):Promise<string|undefined>=>{

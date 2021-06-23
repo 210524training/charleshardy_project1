@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect,  useState } from "react";
+import { ChangeEvent, createContext, FormEvent, useContext, useEffect,  useState} from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { useAppSelector } from "../../../hooks";
 import Reimbursement from "../../../models/reimbursement";
@@ -6,9 +6,10 @@ import Approval from "../../../models/approval";
 import Chat from "../../../models/chat";
 import FileLink from "../../filestuff/fileLink";
 import {downloadFileLink} from "../../../remote/TRMS-backend/TRMS.api"
-import { getReimbursementAPI } from "../../../remote/TRMS-backend/TRMS.api";
+import { getReimbursementAPI,updateReimbursement } from "../../../remote/TRMS-backend/TRMS.api";
 import { selectUser, UserState } from "../../../slices/user.slice";
 import { v4 } from 'uuid';
+import reply from '../../../icons/reply.svg';
 // import reimbursement from "../../../models/reimbursement";
 
 
@@ -22,6 +23,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
     const [msgOut,setMsgOut] = useState<string|undefined>(undefined);
     const history = useHistory();
     const user = useAppSelector<UserState>(selectUser);
+    const [load, setLoad] = useState<JSX.Element[]>([<>Loading Reimbursement...</>])
 
     const [fileLinks,setFileLinks]=useState<JSX.Element[]>([]);
     
@@ -31,6 +33,12 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
         setMsgOut(out);
         
     }
+
+     const serverUpdateReimbursement = async()=>{
+         if(reimbursement){
+            updateReimbursement(reimbursement);
+         }
+     };
 
     
     useEffect(()=>{
@@ -67,6 +75,9 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
             if (isMounted){
                 console.log("ELLO");
                 const newReimbursementResult = await getReimbursement();
+                if(!newReimbursementResult){
+                    setLoad([<>requested reimbursment does not exist...</>]);
+                } 
                 if(newReimbursementResult.code === 202){
                     window.alert("return code "+newReimbursementResult.code+"!");
                     console.log("return code "+newReimbursementResult.code+"!");
@@ -94,7 +105,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
     return(
         <>
             <div className="spacer"></div>
-            {(!reimbursement)?("something went wrong!"):(
+            {(!reimbursement)?(load):(
             <>
                 {   
                     <>
@@ -150,10 +161,10 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                                     </ul>
                                 </div>
                                 {(msgOut && user)?(<>
-                                    <div className="container secondary-color-2 border border-2 secondary-color-1-border p-3 rounded">
+                                    <div className="container pb-0  secondary-color-2 border border-2 secondary-color-1-border p-3 rounded">
                                         {
                                         <OutContext.Provider value={msgOut}>
-                                           <MessageBox chat={chat}/>
+                                           <MessageBox setChat={setChat} serverUpdate={serverUpdateReimbursement } chat={chat}/>
                                         </OutContext.Provider>
                                         }
                                     </div>
@@ -169,23 +180,29 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
         </>
     );
 }
-type props={chat:Chat}
-const MessageBox: React.FC<props> = ({chat}:props)=>{
+type props={
+    chat:Chat
+    setChat: React.Dispatch<React.SetStateAction<Chat | undefined>>
+    serverUpdate:  () => Promise<void>
+}
+const MessageBox: React.FC<props> = ({serverUpdate, chat, setChat}:props)=>{
     const user = useAppSelector<UserState>(selectUser);
     const out = useContext(OutContext);
+    const [newMessage, setNewMessage] = useState<string|undefined>();
+    const [messageBox, setMessageBox] = useState<JSX.Element[]>([]);
 
-    const getMessageBoxes = (pageGuy: string, RemoteGuy: string): JSX.Element[] => {
+    const getMessageBoxes = (pageGuy: string, RemoteGuy: string, chatLog: Chat): JSX.Element[] => {
         console.log("pageguy:"+pageGuy+" remoteGuy:"+RemoteGuy);
-        if(!chat) return[];
+        if(!chatLog) return[];
         const messageBoxes: JSX.Element[] = [];
         const currentMembers = [RemoteGuy,pageGuy]
         let msgkey = 0;
-        chat.messages.forEach(message=>{
+        chatLog.messages.forEach(message=>{
             if(currentMembers.includes(message.from) && currentMembers.includes(message.to)){
                 if(message.from === pageGuy){
-                    messageBoxes.push(<div key={"mess"+msgkey} className="container mb-3 rounded-pill secondary-color-1" >{"you: "+message.message}</div>);
+                    messageBoxes.push(<div key={"mess"+msgkey} className="container w-75 mb-3 me-0 rounded-pill secondary-color-1" >{"you: "+message.message}</div>);
                 }else{
-                    messageBoxes.push(<div key={"mess"+msgkey} className="container mb-3 rounded-pill text-light primary-color" >{message.from+": "+message.message}</div>);
+                    messageBoxes.push(<div key={"mess"+msgkey} className="container w-75 mb-3 ms-0 rounded-pill text-light primary-color" >{message.from+": "+message.message}</div>);
                 }
                 
                 msgkey++;
@@ -193,11 +210,59 @@ const MessageBox: React.FC<props> = ({chat}:props)=>{
         });
         console.log("numMess:"+messageBoxes.length)
         return messageBoxes;
-    } 
-    if(user && out){
-        return<>{getMessageBoxes(user.username, out)}</>
     }
-    return <></>
+
+    const handleMsgSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log("message sent");
+        if(user && out && newMessage){
+            const msg ={to:out,from:user.username,message:newMessage};
+            const newChat = chat;
+            newChat.messages.push(msg);
+            setChat(newChat);
+            setMessageBox(getMessageBoxes( user.username,out, newChat));
+            window.scrollTo(0,document.body.scrollHeight);
+            await serverUpdate();
+            const input:HTMLInputElement|null = document.getElementById("messageInput") as HTMLInputElement;
+            if(input){
+                if(input.value) input.value="";
+            }
+        }
+        
+    }
+
+    
+
+    const handleMsgChange = (e: ChangeEvent<HTMLInputElement>)=>{
+        setNewMessage(e.target.value);
+    };
+    useEffect(()=>{
+        if(user && out){
+            setMessageBox( getMessageBoxes(user.username, out, chat));
+        }
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[chat,out]);
+
+    if(user && out){
+        return(
+        <>
+            {messageBox}
+            <form onSubmit={handleMsgSubmit}>
+            <hr className="my"/>
+            <div className="input-group input-group-end d-flex flex-row-reverse">
+                <div className="d-flex p-1 w-75 bg-light flex-row-reverse rounded-pill">
+                    <button type="submit" className="btn p-1 btn-sm btn-primary rounded-pill">
+                        <img alt="reply" className="m-auto" src={reply}/>
+                    </button>
+                    <input  type="text" id="messageInput" onChange={handleMsgChange} className="w-100 border-0 no-focus rounded-pill" placeholder="   Enter message . . ."/>
+                </div>
+                
+            </div>
+            </form>
+        </>);
+    }
+    return (<></>);
 }
 
 
