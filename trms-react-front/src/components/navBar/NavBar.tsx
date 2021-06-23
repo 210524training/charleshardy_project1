@@ -35,7 +35,18 @@ const navbar: React.FC<unknown> = () => {
                   <li className="nav-item">
                   <NavLink className="nav-link text-light" to="/reimbursments">Reimbursements</NavLink>
                   </li>
-                </>)
+
+                  {(user.role !== 'employee')?(<></>):(
+                  <>
+                    <li className="nav-item">
+                    <NavLink className="nav-link text-light" to="/request">Request reimbursment</NavLink>
+                    </li>
+                  </>
+                  )
+                  }
+                </>
+                )
+                
               }
             </ul>
             <ul className="navbar-nav ms-auto">

@@ -5,6 +5,7 @@ import LoginPage from '../components/pages/login/LoginPage';
 import RegisterPage from '../components/pages/register/registerPage';
 import ReimbursementsPage from '../components/pages/reimbursements/reimbursementsPage';
 import ReimbursementPage from '../components/pages/reimbursements/reimbursementPage';
+import RequestPage from '../components/pages/request/requestPage';
 const AppRoutes: React.FC<unknown> = (props) => {
 
     return (
@@ -14,6 +15,9 @@ const AppRoutes: React.FC<unknown> = (props) => {
         </Route>
         <Route exact path='/login'>
           <LoginPage />
+        </Route>
+        <Route exact path='/request'>
+          <RequestPage />
         </Route>
         <Route exact path='/reimbursments'>
           <ReimbursementsPage />
