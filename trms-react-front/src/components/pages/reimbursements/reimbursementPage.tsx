@@ -8,13 +8,14 @@ import FileLink from "../../filestuff/fileLink";
 import {downloadFileLink} from "../../../remote/TRMS-backend/TRMS.api"
 import { getReimbursementAPI } from "../../../remote/TRMS-backend/TRMS.api";
 import { selectUser, UserState } from "../../../slices/user.slice";
+import { v4 } from 'uuid';
 // import reimbursement from "../../../models/reimbursement";
 
 
 const OutContext = createContext<string|undefined>(undefined);
 const ReimbursementPage: React.FC = (): JSX.Element => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const params = useParams<{id:string}>();;
+    const params = useParams<{id:string}>();
     const [reimbursement,setReimbursement] = useState<Reimbursement|undefined>(undefined);
     const [approval,setApproval] = useState<Approval|undefined>(undefined);
     const [chat,setChat] = useState<Chat|undefined>(undefined);
@@ -22,7 +23,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
     const history = useHistory();
     const user = useAppSelector<UserState>(selectUser);
 
-    const [fileLinks,setFileLinks]=useState<JSX.Element[]>([<span key="link:default">Loading links...</span>]);
+    const [fileLinks,setFileLinks]=useState<JSX.Element[]>([]);
     
     if(!user){ history.push('/');}
 
@@ -43,28 +44,28 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
             return{code:404,reimbursement:undefined};
         });
 
-        const getLinks =async ():Promise<JSX.Element[]>=>{
-            if(reimbursement){
-                const links:JSX.Element[] = [];
-                for(let i = 0; i<reimbursement.attachments.length; i++){
-                    let attachment = reimbursement.attachments[i];
-                    const url = await downloadFileLink(attachment.fileID,attachment.fileName);
-                    console.log("LINK:"+url);
-                    if(url){
-                        links.push(<FileLink key={url} fileName={attachment.fileName} url={url}/>);
-                    }
+        const getLinks =async (attachments:{fileID:string,fileName:string}[]):Promise<JSX.Element[]>=>{
+        
+            const links:JSX.Element[] = [];
+            for(let i = 0; i<attachments.length; i++){
+                let attachment = attachments[i];
+                const url = await downloadFileLink(attachment.fileID,attachment.fileName);
+                console.log("LINK:"+url);
+                if(url){
+                    links.push(<FileLink key={v4().toString() + url} fileName={attachment.fileName} url={url}/>);
                 }
-                console.log("NUM-LINKs "+links.length);
-                return (links);
-
-            }else{
-                return[];
             }
+            
+            console.log("NUM-LINKs "+links.length);
+            return (links);
+
+            
             
         }
         const loadReimbursement = (async()=>{
             let isMounted = true;               // note mutable flag
             if (isMounted){
+                console.log("ELLO");
                 const newReimbursementResult = await getReimbursement();
                 if(newReimbursementResult.code === 202){
                     window.alert("return code "+newReimbursementResult.code+"!");
@@ -72,12 +73,15 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                 }
                 setReimbursement( newReimbursementResult.reimbursement);
                 if(newReimbursementResult.reimbursement){
+                    
                     setApproval(newReimbursementResult.reimbursement.approval);
                     if(newReimbursementResult.reimbursement.approval){
                         setChat(newReimbursementResult.reimbursement.approval.chat);
                     }
-                    const links  = await getLinks(); 
+                    const links  = await getLinks(newReimbursementResult.reimbursement.attachments); 
                     setFileLinks(links);
+                    console.log("MATE"+ links);
+                    
                 }
             }     // add conditional check
             return () => { isMounted = false }; // use cleanup to toggle value, if unmounted

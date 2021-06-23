@@ -15,7 +15,7 @@ class DAOFile{
           ContentType: file.mimetype,
           Bucket: this.BUCKET,
           ACL: 'authenticated-read'
-        }; 
+        };
 
         const result = await S3.upload(params, function(err, data) {
           console.log(err, data);
