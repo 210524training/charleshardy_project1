@@ -3,6 +3,19 @@ import TrmsClient from "./TRMS.client";
 import httpCodes from 'http-status-codes';
 import Reimbursement from "../../models/reimbursement";
 
+export const postReimbursement= async(reimbursement:Reimbursement):Promise<boolean>=>{
+  try{
+    const result = await TrmsClient.post<boolean>('api/v1/reimbursements/',{
+      reimbursement
+    });
+    return result.data;
+    
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
 export const updateReimbursement = async (reimbursement:Reimbursement): Promise<boolean> => {
   try{
     console.log("updating reimbursement" + reimbursement.id);

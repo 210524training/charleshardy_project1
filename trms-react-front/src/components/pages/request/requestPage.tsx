@@ -2,6 +2,11 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import { useAppSelector } from "../../../hooks";
 import { selectUser, UserState } from "../../../slices/user.slice";
 import FileUploader from '../../filestuff/fileuploader';
+import Chat from '../../../models/chat';
+import Reimbursement from '../../../models/reimbursement';
+import Approval from '../../../models/approval';
+import {postReimbursement} from "../../../remote/TRMS-backend/TRMS.api";
+import { useHistory } from "react-router-dom";
 
 type educationType =
     'university course'|
@@ -13,6 +18,7 @@ type educationType =
 type evaluationType= 'presentation'| 'grade';
 const RequestPage: React.FC = (): JSX.Element =>{
     const user = useAppSelector<UserState>(selectUser);
+    const history = useHistory();
 
     const [locState, setLocState] = useState<string|undefined>();
     const [locCity, setLocCity] = useState<string|undefined>();
@@ -24,8 +30,81 @@ const RequestPage: React.FC = (): JSX.Element =>{
     const [reason, setReason] = useState<string|undefined>();
     const [files,setFiles]= useState<{fileName: string,fileID:string}[]>([]);
 
+    const preVerify=()=>{
+        
+        if(!activity) return false;
+        if(!Number(cost)) return false;
+        if(!eventDate) return false;
+        if(!remote){ 
+            if(!locState || locState === "DEFAULT") return false;
+            if(!locCity) return false;
+        }
+        if(!evaluation) return false;
+        if(!reason) return false;
+        return true;
+    }
+
+    const buildRiembursement=()=>{
+        if(!preVerify()) return undefined;
+        if(!user) return undefined;
+        
+        const members= new Set<string>();
+        if(user.benCo) members.add(user.benCo);
+        if(user.departmentHead) members.add(user.departmentHead);
+        if(user.supervisor) members.add(user.supervisor);
+        members.add(user.username);
+        const membersArr:string[] = [];
+        members.forEach(member=>{membersArr.push(member);});
+
+        if(!user.supervisor || !user.departmentHead || !user.benCo) return undefined;
+        const chat = new Chat(membersArr,[]);
+
+        const approval = new Approval(0,undefined, false, undefined, {d0:'',d1:'',d2:'',d3:''}, chat);
+
+        const subDate = new Date();
+        const location=(remote ? "remote" :({state:locState as string, city:locCity as string}))
+
+        const reimbursement = new Reimbursement(
+            '',
+            user.username, 
+            user.supervisor,
+            user.departmentHead,
+            user.benCo,
+            activity as educationType,
+            cost as number,
+            `${subDate.getMonth()+1}/${subDate.getDate()}/${subDate.getFullYear()}`,
+            eventDate as string,
+            location,
+            evaluation as evaluationType,
+            reason as string,
+            files,
+            0,
+            approval,
+            false
+        );
+        return reimbursement;
+    }
+
     const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        console.log("buildRiembursement...");
+        const reimbursement = buildRiembursement();
+        if(reimbursement){
+            console.log("send...reimbursement");
+            const result = await postReimbursement(reimbursement);
+            if(result){
+                alert("request made!");
+                history.push('/');
+            }else{
+                alert("request Failed!");
+            }
+            console.log("riembursement dealt with...");
+            
+            
+        }else{
+            console.log("invalid input try again");
+        }
         
         
     };
@@ -63,9 +142,7 @@ const RequestPage: React.FC = (): JSX.Element =>{
         
     }
 
-    const handlefnameChange = (e: ChangeEvent<HTMLInputElement>) => {
-        
-    };
+    
 
     const handleReasonChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         setReason(e.target.value);
@@ -93,9 +170,8 @@ const RequestPage: React.FC = (): JSX.Element =>{
         const minDate = new Date( currDate + (6.048e+8 * 1) );
 
         if(minDate<=newDate){
-            const date = `${newDate.getDay()}/${newDate.getMonth()}/${newDate.getFullYear()}`;
-            alert(date);
-
+            const date = `${newDate.getMonth()+1}/${newDate.getDate()}/${newDate.getFullYear()}`;
+            setEventDate(date);
         } else{
             alert('please select a date at least 7+ days from now.');
             e.target.value ="";
@@ -117,15 +193,12 @@ const RequestPage: React.FC = (): JSX.Element =>{
                 <div className="container secondary-color-2 border border-2 secondary-color-1-border p-3 rounded">
                 <form onSubmit={handleFormSubmit}>
                         <div className="form-group">
-                            <label htmlFor="inputfname">First name:</label>
-                            <input required type="text" id="inputfname" className="form-control" placeholder="Enter your first name" onChange={handlefnameChange}/>
+                            
                         </div>
                         <div className="form-group">
-                            <label htmlFor="inputlname">Last name:</label>
-                            <input required type="text" id="inputlname" className="form-control" placeholder="Enter your last name" />
                             
                             <label htmlFor="inputActivity">Select activity:</label>
-                            <select required id="inputActivity" defaultValue="DEFAULT" className="form-select" aria-label="Default select example" onChange={handleActivityChange}>
+                            <select name="inputActivity" required id="inputActivity" defaultValue="DEFAULT" className="form-select" aria-label="Default select example" onChange={handleActivityChange}>
                                 <option value={undefined}>--select activity--</option>
                                 <option value='university course'>university course</option>
                                 <option value='seminar'>seminar</option>
@@ -136,20 +209,20 @@ const RequestPage: React.FC = (): JSX.Element =>{
                             </select>
 
                             <label htmlFor="inputCost">Enter cost:</label>
-                            <input required className="form-control" placeholder="Enter cost of activity" type="number" id="inputCost" min="0" onChange={handleCostChange} ></input>
+                            <input required className="form-control" placeholder="Enter cost of activity" type="number" id="inputCost" name="inputCost" min="0" onChange={handleCostChange} ></input>
 
                             <label htmlFor="inputEventDate">Enter event date:</label>
-                            <input required placeholder="Enter event date" id="inputEventDate"className="form-control" type="date" onChange={handleEventDateChange} ></input>
+                            <input required placeholder="Enter event date" id="inputEventDate" name="inputEventDate" className="form-control" type="date" onChange={handleEventDateChange} ></input>
 
                             <div>
                                 Location:&nbsp;
                                 <label className="form-check-label" htmlFor="remoteToggle">Remote&nbsp;</label>
-                                <input id='remoteToggle' className="form-check-input" type="checkbox"  value="true" onChange={handleRemoteToggle}/>
+                                <input id='remoteToggle' name='remoteToggle' className="form-check-input" type="checkbox"  value="true" onChange={handleRemoteToggle}/>
                             </div>
                             
                             <div id="loc">
                                 <label htmlFor="inputState">Enter state:</label>
-                                <select required id="inputState" defaultValue="DEFAULT" className="form-select" aria-label="Default select example" onChange={handleLocStateChange}>
+                                <select  id="inputState" name="inputState" defaultValue="DEFAULT" className="form-select" aria-label="Default select example" onChange={handleLocStateChange}>
                                     <option value={undefined}>--select state--</option>
                                     <option value="AL">Alabama</option>
                                     <option value="AK">Alaska</option>
@@ -205,18 +278,18 @@ const RequestPage: React.FC = (): JSX.Element =>{
                                 </select>
                                 
                                 <label htmlFor="inputCity">Enter city:</label>
-                                <input type="text" className="form-control" id="inputCity" placeholder="Enter city" required onChange={handleCityChange}></input>
+                                <input type="text" className="form-control" name="inputCity" id="inputCity" placeholder="Enter city"  onChange={handleCityChange}></input>
                             </div>
 
                             <label htmlFor="inputEvaluation">Select Evaluation:</label>
-                            <select required id="inputEvaluation" defaultValue="DEFAULT" className="form-select" aria-label="Default select example" onChange={handleEvaluationChange}>
+                            <select required name="inputEvaluation" id="inputEvaluation" defaultValue="DEFAULT" className="form-select" aria-label="Default select example" onChange={handleEvaluationChange}>
                                 <option value={undefined}>--select Evaluation--</option>
                                 <option value='presentation'>presentation</option>
                                 <option value='grade'>grade</option>
                             </select>
 
                             <label htmlFor="inputReason">Enter reason/description:</label>
-                            <textarea required  id="inputReason" className="form-control mb-3" placeholder="please give discription" onChange={handleReasonChange} ></textarea>
+                            <textarea required  id="inputReason" name="inputReason" className="form-control mb-3" placeholder="please give discription" onChange={handleReasonChange} ></textarea>
 
                             <label>Attach files:&nbsp;</label>
                             <FileUploader uploadedFiles={files} setUploadedFiles={setFiles} />
@@ -225,7 +298,7 @@ const RequestPage: React.FC = (): JSX.Element =>{
                             }
                         </div> 
                         <br/>
-                    <button type="submit"  className="btn btn-primary text-light primary-color">Make Request</button>
+                    <button type="submit" name="sub" id="sub"  className="btn btn-primary text-light primary-color">Make Request</button>
                     </form>
 
                 </div>

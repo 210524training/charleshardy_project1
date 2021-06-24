@@ -12,7 +12,7 @@ class ReimbursementService{
         }
         const priceCoverage:number = price* constants.priceCoverage(plan);
         const totalFunds = user.reimbursementFunds
-        const projectedReimbursement = ((priceCoverage>totalFunds)?(priceCoverage):(totalFunds));
+        const projectedReimbursement = ((priceCoverage<=totalFunds)?(priceCoverage):(totalFunds));
 
         if(projectedReimbursement>=0) return projectedReimbursement
         return 0;

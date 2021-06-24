@@ -50,7 +50,8 @@ reimbursementRouter.post('/', async (req, res) => {
   if(!req.session.isLoggedIn || !req.session.user) {
     throw new Error('You must be logged in to access this functionality');
   }
-  const result = await reimbursementService.makeReimbursementRequest(req.body);
+  const {reimbursement} = req.body;
+  const result = await reimbursementService.makeReimbursementRequest(reimbursement);
   if(result){
     res.status(httpCodes.OK).json(result);
   }else{
