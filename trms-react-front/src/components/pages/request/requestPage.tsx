@@ -164,6 +164,21 @@ const RequestPage: React.FC = (): JSX.Element =>{
     const handleCityChange = (e: ChangeEvent<HTMLInputElement>) => {
         setLocCity(e.target.value);
     };
+
+    const removeFile = (id: string)=>{
+        const newfileList: {
+            fileName: string;
+            fileID: string;
+        }[] = []
+        files.forEach(file=>{
+            if(file.fileID !== id){
+                newfileList.push(file);
+            }
+        });
+
+        setFiles(newfileList);
+    }
+
     const handleEventDateChange = (e: ChangeEvent<HTMLInputElement>) => {
         const newDate = new Date(e.target.value);
         const currDate = Date.now();
@@ -293,8 +308,15 @@ const RequestPage: React.FC = (): JSX.Element =>{
 
                             <label>Attach files:&nbsp;</label>
                             <FileUploader uploadedFiles={files} setUploadedFiles={setFiles} />
+                            <br/>
                             Attached file(s) :{
-                            files.map(file =>{return<label key={file.fileID}> &nbsp;{`${file.fileName}`}</label>})
+                            files.map(file =>{
+                                return(
+                                <label className="text-light m-3 p-1 border border-2 secondary-color-1-border rounded primary-color position-relative" id={file.fileID} key={file.fileID}> 
+                                    {`${file.fileName}`}&nbsp;
+                                    <button key={"x"+file.fileID} onClick={(e)=>{removeFile(file.fileID)}} className="btn-sm position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger ">X</button>
+                                </label>);
+                            })
                             }
                         </div> 
                         <br/>
