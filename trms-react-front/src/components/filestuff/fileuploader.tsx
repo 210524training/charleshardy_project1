@@ -45,6 +45,7 @@ const FileUploader = ({uploadedFiles,setUploadedFiles}:props) => {
             failedOut+="} ";
             successOut+="}";
             window.alert(failedOut+" "+successOut);
+            uploadedFiles.forEach((file)=>{uploadedFilesList.push(file)});
             setUploadedFiles(uploadedFilesList);
             setLoad(<div>Upload Complete</div>);
         }
