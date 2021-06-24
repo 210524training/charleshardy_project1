@@ -132,7 +132,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                                 <p><span className="fw-bold">Evaluation:</span> {`${reimbursement.evaluation}`}</p>
                                 <p><span className="fw-bold">Location:</span> {`${(reimbursement.location==="remote")?("remote"):reimbursement.location.city+", "+reimbursement.location.state}`}</p>
                                 <p><span className="fw-bold">Projected Reimbursement:</span> {`${reimbursement.projectedReimbursement}`}</p>
-                                <p><span className="fw-bold">Aproved:</span> { `${(reimbursement.resolved)?(approval?.denyReim===undefined):("Pending")}` }</p>
+                                <p><span className="fw-bold">Status:</span> { `${(reimbursement.resolved)?(approval?.denyReim===undefined):("Pending")}` }</p>
                                 {
                                     (approval?.denyReim!==undefined)?
                                     (<>

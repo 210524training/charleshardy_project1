@@ -22,11 +22,28 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
               const newReims:JSX.Element[] = [];
               reims.forEach((reim: Reimbursement) => {
                 newReims.push(
-                    <div className="container border border-2 bg-light secondary-color-1-border p-3 rounded" key={`reim-id:${reim.id}`}>
-                        {
-                        `activity:${reim.activity} reason:${reim.reason} submission-date:${reim.submissiondate}`
-                        }
-                        <NavLink className="navbar-brand " to={`/reimbursments/${reim.id}`}>view here</NavLink>
+                    <div className={`{container-flex border secondary-color-2 border-2 bg-light ${reim.approval.urgent?('border-danger'):('secondary-color-1-border')} p-3 m-3 rounded}`} key={`reim-id:${reim.id}`}>
+                        <div className="d-inline-flex">
+                            <div className="p-2 bd-highlight">
+                                <span className="fw-bold">Applicant:</span> {`${reim.applicant}`}
+                            </div>
+                            <div className="p-2 bd-highlight">
+                                <span className="fw-bold">Event Date:</span> {`${reim.eventdate}`}
+                            </div>
+                            <div className="p-2 bd-highlight">
+                                <span className="fw-bold">Applicant:</span> {`${reim.applicant}`}
+                            </div>
+                            <div className="p-2 bd-highlight">
+                                <span className="fw-bold">Status: </span> 
+                                {reim.resolved? (`${ reim.approval.denyReim?('deneid'):('accepted') }`):('pending')}
+                            </div>
+                            <div className="p-2 bd-highlight">
+                                <span className="fw-bold">Urgent: </span> 
+                                {reim.approval.urgent?('yes'):('no')} 
+                            </div>
+                            
+                            <NavLink className="navbar-brand " to={`/reimbursments/${reim.id}`}>view here</NavLink>
+                        </div>
                     </div>
                 );
               });
