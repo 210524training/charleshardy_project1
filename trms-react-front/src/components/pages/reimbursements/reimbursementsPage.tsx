@@ -22,8 +22,8 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
               const newReims:JSX.Element[] = [];
               reims.forEach((reim: Reimbursement) => {
                 newReims.push(
-                    <div className={`{container-flex border secondary-color-2 border-2 bg-light ${reim.approval.urgent?('border-danger'):('secondary-color-1-border')} p-3 m-3 rounded}`} key={`reim-id:${reim.id}`}>
-                        <div className="d-inline-flex">
+                    <div className={`container d-flex border flex-wrap secondary-color-2 border-2 bg-light ${reim.approval.urgent?('border-danger'):('secondary-color-1-border')} p-3 m-3 rounded}`} key={`reim-id:${reim.id}`}>
+                        
                             <div className="p-2 bd-highlight">
                                 <span className="fw-bold">Applicant:</span> {`${reim.applicant}`}
                             </div>
@@ -48,7 +48,7 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
                             
                             <NavLink className="navbar-brand " to={`/reimbursments/${reim.id}`}>view here</NavLink>
                         </div>
-                    </div>
+                    
                 );
               });
             return newReims;
@@ -75,7 +75,7 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
                 <div className="spacer"/>
             </div>
             
-            <div className="container w-75 secondary-color-2 border border-2 secondary-color-1-border p-3 rounded">
+            <div className="container w-100 secondary-color-2 d-flex border border-2 secondary-color-1-border p-3 rounded">
                 {(reimbursements.length)===0?('You have no reimbursements!'):(reimbursements)}
             </div>
         </>
