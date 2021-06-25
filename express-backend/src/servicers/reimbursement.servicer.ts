@@ -1,12 +1,27 @@
 import DAOReimbursement from '../DAO/DAOReimbursement';
-import Reimbursement from '../models/reimbursement';
 import DAOUser from '../DAO/DAOUser';
+import Reimbursement from '../models/reimbursement';
 import User from '../models/user';
 import constants from '../constants';
+import reimbursement from '../models/reimbursement';
 class ReimbursementService{
-    private async calculateProjectedReimbursement(username:string, price:number, plan:string): Promise<number> {
-        const user: User|null= await DAOUser.exists(username);
-
+    private isUrgent(date:string):boolean{
+        const currDate = Date.now();
+        const minDate = new Date( currDate + (6.048e+8 * 1) );
+    
+        const vars = date.split('/');
+        const day = Number(vars[1]);
+        const month = Number(vars[0]);
+        const year = Number(vars[2]);
+        const d =  new Date(year, month-1, day);
+        if(minDate>d){
+            return true;
+        }
+    
+        return false;
+    }
+    private  calculateProjectedReimbursement(user:User, price:number, plan:string): number {
+        
         if(!user){
             return 0;
         }
@@ -19,11 +34,19 @@ class ReimbursementService{
     }
 
     public async makeReimbursementRequest(reimbursement: Reimbursement): Promise<boolean>{
-        const projection = await this.calculateProjectedReimbursement(
-            reimbursement.applicant,
+        const user: User|null= await DAOUser.exists(reimbursement.applicant);
+        if(!user) return false;
+
+        
+        
+        const projection = this.calculateProjectedReimbursement(
+            user,
             reimbursement.cost,
             reimbursement.activity
         );
+        user.reimbursementFunds = (((user.reimbursementFunds - reimbursement.cost) <= 0)? (0): (user.reimbursementFunds - reimbursement.cost));
+        const res = await DAOUser.update(user);
+        if(!res) return false;
         reimbursement.projectedReimbursement = projection;
         return await DAOReimbursement.add(reimbursement);
     }
@@ -33,20 +56,53 @@ class ReimbursementService{
     }
 
     public async getAll(): Promise<Reimbursement[]>{
-        return await DAOReimbursement.getAll();
+        const reims = (await DAOReimbursement.getAll());
+
+        reims.forEach((reimbursement)=>{
+            if(this.isUrgent(reimbursement.eventdate)){
+                if(!reimbursement.resolved){
+                    reimbursement.approval.urgent=true;
+                }
+            }
+        });
+        return reims;
     }
 
     public async getEmpReimbursements(username: string): Promise<Reimbursement[]>{
-        return await DAOReimbursement.getByApplicant(username);
+        const reims = await DAOReimbursement.getByApplicant(username);
+
+        reims.forEach((reimbursement)=>{
+            if(this.isUrgent(reimbursement.eventdate)){
+                if(!reimbursement.resolved){
+                    reimbursement.approval.urgent=true;
+                }
+            }
+        });
+        return reims;
     }
 
     public async getEmpReimbursement(username: string, id: string): Promise<Reimbursement|null>{
-        return await DAOReimbursement.get(username, id);
+        const reimbursement = await DAOReimbursement.get(username, id);
+        if(!reimbursement) return null;
+        if(this.isUrgent(reimbursement.eventdate)){
+            if(!reimbursement.resolved){
+                reimbursement.approval.urgent=true;
+            }
+        }
+        return reimbursement;
     }
 
     public async getById(id: string): Promise<Reimbursement|null>{
         const result = await DAOReimbursement.getByCondition("id",id);
-        return (result.length > 0 )? (result[0]): (null);
+        if(result.length<=0) return null;
+        const reimbursement =result[0];
+        if(this.isUrgent(reimbursement.eventdate)){
+            if(!reimbursement.resolved){
+                reimbursement.approval.urgent=true;
+            }
+        }
+        
+        return reimbursement;
     }
 
     public async getByApprover(
@@ -58,7 +114,15 @@ class ReimbursementService{
         if(role === 'benefits coordinator') condName='benCo';
         if(role === 'department head') condName='departmentHead';
 
-        return await DAOReimbursement.getByCondition(condName, username);
+        const reims =  await DAOReimbursement.getByCondition(condName, username);
+        reims.forEach((reimbursement)=>{
+            if(this.isUrgent(reimbursement.eventdate)){
+                if(!reimbursement.resolved){
+                    reimbursement.approval.urgent=true;
+                }
+            }
+        });
+        return reims;
         
 
     }

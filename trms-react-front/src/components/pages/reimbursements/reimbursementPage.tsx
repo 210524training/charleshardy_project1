@@ -1,4 +1,4 @@
-import { ChangeEvent, createContext, FormEvent, useContext, useEffect,  useState} from "react";
+import { ChangeEvent, createContext, FormEvent, useContext, useEffect, useState} from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { useAppSelector } from "../../../hooks";
 import Reimbursement from "../../../models/reimbursement";
@@ -6,12 +6,11 @@ import Approval from "../../../models/approval";
 import Chat from "../../../models/chat";
 import User from "../../../models/user";
 import FileLink from "../../filestuff/fileLink";
-import {downloadFileLink} from "../../../remote/TRMS-backend/TRMS.api"
+import {downloadFileLink,updateUser} from "../../../remote/TRMS-backend/TRMS.api"
 import { getReimbursementAPI,updateReimbursement } from "../../../remote/TRMS-backend/TRMS.api";
 import { selectUser, UserState } from "../../../slices/user.slice";
 import { v4 } from 'uuid';
 import reply from '../../../icons/reply.svg';
-// import reimbursement from "../../../models/reimbursement";
 
 
 const OutContext = createContext<string|undefined>(undefined);
@@ -30,8 +29,10 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
     const [newCost,setNewCost] = useState<number>();
 
     const [reimResponse,setReimResponse] = useState<boolean>(false);
+    const [final,setFinal] = useState<boolean>(false);
 
     const [fileLinks,setFileLinks]=useState<JSX.Element[]>([]);
+    const [evalLinks,setEvalLinks]=useState<JSX.Element[]>([]);
     
     if(!user){ history.push('/');}
 
@@ -154,10 +155,13 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                         setApproval(newApp);
                         setChat(newReimbursementResult.reimbursement.approval.chat);
                         setReimResponse(getReimResponse(newReimbursementResult.reimbursement, user));
+                        if(newReimbursementResult.reimbursement.resolved)setFinal(true);
                         
                     }
                     const links  = await getLinks(newReimbursementResult.reimbursement.attachments); 
+                    const evals  = await getLinks(newReimbursementResult.reimbursement.evaluations); 
                     setFileLinks(links);
+                    setEvalLinks(evals);
                     console.log("MATE"+ links);
                     
                 }
@@ -183,8 +187,13 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
 
         
         if(action === 'mod-accepted'){
-            if(newCost || newCost === 0 ){
-                newApproval.modReim ={reason:reason as string, cost:newCost};
+            if(newCost || newCost === 0 ){newApproval.modReim ={reason:reason as string, cost:newCost};
+                const newUser = new User(reimbursement.applicant,'root','employee','c','h',0,'','','','');
+
+                newUser.reimbursementFunds += (reimbursement.projectedReimbursement- newCost);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const x =await updateUser(newUser);
+                
             }else{
                 alert('Please enter new adjusted reimbursement');
                 return;
@@ -195,6 +204,15 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
         if(action === 'rejected'){
             newApproval.denyReim = {reason:reason as string, denier:user.username};
             reimbursement.resolved = true;
+            newApproval.urgent = false;
+            const newUser = new User(reimbursement.applicant,'root','employee','c','h',0,'','','','');
+
+            newUser.reimbursementFunds += reimbursement.projectedReimbursement;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const x =await updateUser(newUser);
+
+            
+            setFinal(true);
             
         }else{
             newApproval.level = getRoleLevel(user.role);
@@ -206,6 +224,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
         if(user.role ==='benefits coordinator'){
             reimbursement.resolved = true;
             newApproval.urgent = false;
+            setFinal(true);
         }
         setReimbursement(newReimbursement);
         setApproval(newApproval);
@@ -224,6 +243,26 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
             <div className="spacer"></div>
             {(!reimbursement)?(load):(
             <>
+                {
+                    (final)?
+                    (<div className="container secondary-color-2 border border-2 mb-3 secondary-color-1-border p-3 rounded">
+                        {`Reimbursemnt request resolved with a status of ${(reimbursement.approval.denyReim)?(`'rejected',
+                        deined by '${(reimbursement.approval.denyReim.denier)} because '${(reimbursement.approval.denyReim.denier)}'
+                        `):(`${(reimbursement.approval.modReim)?(`'accepted' by '${reimbursement.benCo}', with a modified reimbursement (from
+                        ${reimbursement.projectedReimbursement} to ${reimbursement.approval.modReim.cost}) because
+                        '${reimbursement.approval.modReim.reason}'`):('accepted')}`)}`}
+                    </div>):(<></>)
+                }
+                {
+                    <div className="container secondary-color-2 border border-2 mb-3 secondary-color-1-border p-3 rounded">
+                        <p><span className="fw-bold">Applicant Evalution Type: </span>{` ${reimbursement.evaluation}`}</p>
+                        <p><span className="fw-bold">Applicant Evalution(s):</span> {
+                            (reimbursement.evaluations.length>0)?(
+                                evalLinks
+                            ):('none.')
+                        }</p>
+                    </div>
+                }
                 {   
                     <>
                     <div className="container secondary-color-2 border border-2 secondary-color-1-border p-3 rounded">

@@ -41,7 +41,15 @@ userRouter.put('/', async (req, res) => {
   if(!req.session.isLoggedIn || !req.session.user) {
     throw new Error('You must be logged in to access this functionality');
   }
-  const result = await userService.update(req.body);
+  const newFunds:number = req.body.user.reimbursementFunds;
+  console.log('newfunds = '+ req.body.user.reimbursementFunds);
+  const user = await userService.exists(req.body.user.username);
+  if(!user){
+    res.status(httpCodes.BAD_REQUEST).json(false);
+    return;
+  }
+  user.reimbursementFunds += newFunds;
+  const result = await userService.update(user);
   if(result){
     res.status(httpCodes.OK).json(result);
   }else{

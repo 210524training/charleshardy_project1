@@ -16,7 +16,6 @@ baseRouter.post('/login', async (req: express.Request<unknown, unknown, { userna
   if(user){
     req.session.isLoggedIn = true;
     req.session.user = user;
-    user.password = "BLOCKED PASS"
     res.status(httpCodes.OK).json(req.session.user);
   } else {
     res.status(httpCodes.FORBIDDEN).send();

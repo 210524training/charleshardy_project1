@@ -77,7 +77,7 @@ const RequestPage: React.FC = (): JSX.Element =>{
             location,
             evaluation as evaluationType,
             reason as string,
-            files,
+            files,[],
             0,
             approval,
             false
@@ -93,13 +93,12 @@ const RequestPage: React.FC = (): JSX.Element =>{
         if(reimbursement){
             console.log("send...reimbursement");
             const result = await postReimbursement(reimbursement);
-            if(result){
+            if(result && user){
                 alert("request made!");
                 history.push('/');
             }else{
                 alert("request Failed!");
             }
-            console.log("riembursement dealt with...");
             
             
         }else{

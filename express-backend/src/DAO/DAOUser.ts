@@ -142,6 +142,7 @@ class DAOUser{
     }
 
     public async update(user: User): Promise<boolean> {
+        console.log('lllllllllllll '+user.username+" "+ user.role +" "+ user.reimbursementFunds);
         const params: AWS.DynamoDB.DocumentClient.PutItemInput = {
             TableName: 'TRMS_user',
             Item: {

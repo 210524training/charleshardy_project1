@@ -16,6 +16,20 @@ export const postReimbursement= async(reimbursement:Reimbursement):Promise<boole
   }
 }
 
+export const updateUser = async(user: User): Promise<boolean> => {
+  try{
+    console.log("updating user" + user);
+    const result = await TrmsClient.put<boolean>('api/v1/users/',{
+      user: user,
+    });
+    return result.data;
+
+  }catch(err){
+    console.log(err);
+    return false;
+  }
+}
+
 export const updateReimbursement = async (reimbursement:Reimbursement): Promise<boolean> => {
   try{
     console.log("updating reimbursement" + reimbursement.id);

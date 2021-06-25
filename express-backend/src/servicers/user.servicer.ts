@@ -22,6 +22,7 @@ class UserService{
         return await DAOUser.get(username);
     }
 
+    public async exists(username: string): Promise<User|null> {return await DAOUser.exists(username);}
     public async addUser(user: User): Promise<boolean>{
         return await DAOUser.add(new User(
             user.username,

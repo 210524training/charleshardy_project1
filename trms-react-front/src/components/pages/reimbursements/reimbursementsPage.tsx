@@ -22,16 +22,13 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
               const newReims:JSX.Element[] = [];
               reims.forEach((reim: Reimbursement) => {
                 newReims.push(
-                    <div className={`container d-flex border flex-wrap secondary-color-2 border-2 bg-light ${reim.approval.urgent?('border-danger'):('secondary-color-1-border')} p-3 m-3 rounded}`} key={`reim-id:${reim.id}`}>
+                    <div className={`container d-flex border m-auto mt-3 flex-wrap secondary-color-2 border-2 bg-light ${reim.approval.urgent?('border-danger'):('secondary-color-1-border')} p-3 m-3 rounded}`} key={`reim-id:${reim.id}`}>
                         
                             <div className="p-2 bd-highlight">
                                 <span className="fw-bold">Applicant:</span> {`${reim.applicant}`}
                             </div>
                             <div className="p-2 bd-highlight">
                                 <span className="fw-bold">Event Date:</span> {`${reim.eventdate}`}
-                            </div>
-                            <div className="p-2 bd-highlight">
-                                <span className="fw-bold">Applicant:</span> {`${reim.applicant}`}
                             </div>
                             <div className="p-2 bd-highlight">
                                 <span className="fw-bold">Status: </span> 
@@ -45,7 +42,7 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
                                 <span className="fw-bold">Approval Level: </span> 
                                 {reim.approval.level} 
                             </div>
-                            
+                            {(user.role==='employee')?(<NavLink className="navbar-brand " to={`/evaluations/${reim.id}`}>Add Evaluation(s) here</NavLink>):(<></>)}
                             <NavLink className="navbar-brand " to={`/reimbursments/${reim.id}`}>view here</NavLink>
                         </div>
                     
@@ -75,7 +72,7 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
                 <div className="spacer"/>
             </div>
             
-            <div className="container w-100 secondary-color-2 d-flex border border-2 secondary-color-1-border p-3 rounded">
+            <div className="container w-100 secondary-color-2 pb-3 d-flex flex-column border border-2 secondary-color-1-border  rounded">
                 {(reimbursements.length)===0?('You have no reimbursements!'):(reimbursements)}
             </div>
         </>
