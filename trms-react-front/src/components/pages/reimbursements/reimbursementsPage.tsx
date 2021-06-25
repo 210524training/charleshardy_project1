@@ -41,6 +41,10 @@ const reimbursementsPage: React.FC = (): JSX.Element => {
                                 <span className="fw-bold">Urgent: </span> 
                                 {reim.approval.urgent?('yes'):('no')} 
                             </div>
+                            <div className="p-2 bd-highlight">
+                                <span className="fw-bold">Approval Level: </span> 
+                                {reim.approval.level} 
+                            </div>
                             
                             <NavLink className="navbar-brand " to={`/reimbursments/${reim.id}`}>view here</NavLink>
                         </div>

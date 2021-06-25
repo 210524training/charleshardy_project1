@@ -4,6 +4,7 @@ import { useAppSelector } from "../../../hooks";
 import Reimbursement from "../../../models/reimbursement";
 import Approval from "../../../models/approval";
 import Chat from "../../../models/chat";
+import User from "../../../models/user";
 import FileLink from "../../filestuff/fileLink";
 import {downloadFileLink} from "../../../remote/TRMS-backend/TRMS.api"
 import { getReimbursementAPI,updateReimbursement } from "../../../remote/TRMS-backend/TRMS.api";
@@ -23,7 +24,12 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
     const [msgOut,setMsgOut] = useState<string|undefined>(undefined);
     const history = useHistory();
     const user = useAppSelector<UserState>(selectUser);
-    const [load, setLoad] = useState<JSX.Element[]>([<>Loading Reimbursement...</>])
+    const [load, setLoad] = useState<JSX.Element[]>([<>Loading Reimbursement...</>]);
+    const [action, setAction] = useState<'accepted'|'rejected'|'mod-accepted'>('accepted');
+    const [reason, setReason] = useState<string>();
+    const [newCost,setNewCost] = useState<number>();
+
+    const [reimResponse,setReimResponse] = useState<boolean>(false);
 
     const [fileLinks,setFileLinks]=useState<JSX.Element[]>([]);
     
@@ -36,9 +42,59 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
 
      const serverUpdateReimbursement = async()=>{
          if(reimbursement){
-            updateReimbursement(reimbursement);
+            return updateReimbursement(reimbursement);
          }
+         return false;
      };
+
+    
+
+    const handleCostChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setNewCost(Number(e.target.value));
+    };
+
+    const getReimResponse= (reimbursement:Reimbursement,user: User)=>{
+        const approvalLevel = reimbursement.approval.level+1;
+        let approver = "";
+
+        console.log("approval lvl "+approvalLevel+" user level "+ getRoleLevel(user.role));
+
+        switch(approvalLevel){
+            case getRoleLevel('supervisor'):
+                approver = reimbursement.supervisor;
+                break;
+            case getRoleLevel('department head'):
+                approver = reimbursement.departmentHead;
+                break;
+            case getRoleLevel('benefits coordinator'):
+                approver = reimbursement.benCo;
+                break;
+            default:
+                return false;
+        }
+        if(user.username === reimbursement.benCo) return true;
+        if(user.username!==approver) return false;
+
+        return true;
+        
+    }
+    const handleReasonChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        setReason(e.target.value);
+    };
+
+    const handleToggle = (e: ChangeEvent<HTMLInputElement>) => {
+        const acceptedOn = e.target.value;
+        const display = (acceptedOn !== 'accepted')?("block"):("none");
+        const locBlock = document.getElementById("inputReason");
+        const locBlockLabel = document.getElementById("inputReasonLabel");
+        const newAction = (acceptedOn === 'accepted')?('accepted'):((acceptedOn ==='rejected')?('rejected'):('mod-accepted'));
+
+        if(locBlock && locBlockLabel){
+            locBlock.style.display = display;
+            locBlockLabel.style.display = display;
+        }
+        setAction(newAction);
+    };
 
     
     useEffect(()=>{
@@ -85,9 +141,20 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                 setReimbursement( newReimbursementResult.reimbursement);
                 if(newReimbursementResult.reimbursement){
                     
-                    setApproval(newReimbursementResult.reimbursement.approval);
-                    if(newReimbursementResult.reimbursement.approval){
+                    
+                    if(newReimbursementResult.reimbursement.approval && user){
+                        const newApp = new Approval(
+                            newReimbursementResult.reimbursement.approval.level,
+                            newReimbursementResult.reimbursement.approval.modReim,
+                            newReimbursementResult.reimbursement.approval.urgent,
+                            newReimbursementResult.reimbursement.approval.denyReim,
+                            newReimbursementResult.reimbursement.approval.dates,
+                            newReimbursementResult.reimbursement.approval.chat
+                            );
+                        setApproval(newApp);
                         setChat(newReimbursementResult.reimbursement.approval.chat);
+                        setReimResponse(getReimResponse(newReimbursementResult.reimbursement, user));
+                        
                     }
                     const links  = await getLinks(newReimbursementResult.reimbursement.attachments); 
                     setFileLinks(links);
@@ -102,6 +169,56 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[]);
+
+    const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if(!approval || !user) return;
+        if(!reimbursement) return;
+        if(action !== 'accepted' && !reason){
+            alert('Please provide a reason');
+            return;
+        }
+
+        const newApproval = approval;
+
+        
+        if(action === 'mod-accepted'){
+            if(newCost || newCost === 0 ){
+                newApproval.modReim ={reason:reason as string, cost:newCost};
+            }else{
+                alert('Please enter new adjusted reimbursement');
+                return;
+            }
+            
+        }
+
+        if(action === 'rejected'){
+            newApproval.denyReim = {reason:reason as string, denier:user.username};
+            reimbursement.resolved = true;
+            
+        }else{
+            newApproval.level = getRoleLevel(user.role);
+        }
+        
+
+        const newReimbursement = reimbursement;
+        newReimbursement.approval = newApproval;
+        if(user.role ==='benefits coordinator'){
+            reimbursement.resolved = true;
+            newApproval.urgent = false;
+        }
+        setReimbursement(newReimbursement);
+        setApproval(newApproval);
+        const result = await serverUpdateReimbursement();
+
+        if(result){
+            setReimResponse(false);
+            alert("Request handled!");
+        }else{
+            alert("failed to handle request");
+        }
+
+    }
     return(
         <>
             <div className="spacer"></div>
@@ -119,6 +236,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                                 <p><span className="fw-bold">Benefits Coordinator:</span> {`${reimbursement.benCo}`}</p>
                                 <p><span className="fw-bold">Submission Date:</span> {`${reimbursement.submissiondate}`}</p>
                                 <p><span className="fw-bold">Event Date:</span> {`${reimbursement.eventdate}`}</p>
+                                <p><span className="fw-bold">Approval Level: </span>{reimbursement.approval.level}  </p>
                                 <p><span className="fw-bold">Attachment(s):</span> {
                                     (reimbursement.attachments.length>0)?(
                                         fileLinks
@@ -145,6 +263,33 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                             
                         </div>
                     </div>
+                    {!reimResponse?(<></>):(
+                        <div className="container secondary-color-2 mt-3 border border-2 secondary-color-1-border p-3 rounded">
+                            <fieldset>
+                                <legend>Handle the Request</legend>
+                                <form onSubmit={handleFormSubmit}>
+                                    <div onChange={handleToggle}>
+                                        <input  className="form-check-input" type="radio" id="accepted" name="response" value="accepted" defaultChecked />
+                                        <label className="form-check-label me-2" htmlFor="accepted">Accept</label>
+                                        <input className="form-check-input" type="radio" id="rejected" name="response"  value="rejected"/>
+                                        <label className="form-check-label me-2" htmlFor="rejected">Reject</label>
+                                        {(!user)?(<></>):((user.role!=='benefits coordinator')?(<></>):(
+                                            <>
+                                            <input className="form-check-input" type="radio" id="mod-accepted" name="response"  value="mod-accepted"/>
+                                            <label className="form-check-label me-2" htmlFor="mod-accepted">Accept and Modify reimbursement</label>
+                                            <br/><label htmlFor="inputCost">Enter Adjusted Reimbursement:</label>
+                                            <input className="form-control" placeholder="Enter cost of activity" type="number" id="inputCost" name="inputCost" min="0" onChange={handleCostChange} ></input>
+                                            </>
+                                        ))}
+                                    </div>
+                                    
+                                    <label id="inputReasonLabel" htmlFor="inputReason">Enter reason:</label>
+                                    <textarea style={{display:'none'}} id="inputReason" name="inputReason" className="form-control mb-3" placeholder="please give reason" onChange={handleReasonChange} ></textarea>
+                                    <button type="submit" name="sub" id="sub"  className="btn btn-primary text-light primary-color">Confirm</button>
+                                </form>
+                            </fieldset>
+                        </div>
+                    )}
                     <div className="spacer"></div>
                     {
                         (chat)?(
@@ -183,7 +328,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
 type props={
     chat:Chat
     setChat: React.Dispatch<React.SetStateAction<Chat | undefined>>
-    serverUpdate:  () => Promise<void>
+    serverUpdate:  () => Promise<boolean>
 }
 const MessageBox: React.FC<props> = ({serverUpdate, chat, setChat}:props)=>{
     const user = useAppSelector<UserState>(selectUser);
@@ -267,11 +412,11 @@ const MessageBox: React.FC<props> = ({serverUpdate, chat, setChat}:props)=>{
 
 
 
-/*function getRoleLevel(role: string): number{
+function getRoleLevel(role: string): number{
     const elevatedRoles=['supervisor', 'department head','benefits coordinator'];
     const index =  elevatedRoles.indexOf(role);
     return index+1;
-}*/
+}
 
 
 export default ReimbursementPage;
