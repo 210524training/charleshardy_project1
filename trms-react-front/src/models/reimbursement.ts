@@ -25,5 +25,6 @@ export default class reimbursement{
         public projectedReimbursement: number,
         public approval: Approval,
         public resolved: boolean,
+        public updateArr: boolean[]
     ){}
 }

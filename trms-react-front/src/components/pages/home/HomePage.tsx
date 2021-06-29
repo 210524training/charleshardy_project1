@@ -29,7 +29,7 @@ const Component: React.FC = (): JSX.Element => {
             <p><span className="fw-bold">How do I submit my evaluation?</span></p>
             <p>If you are a department head, supervisor, or benefits coordinator then you can't. Otherwise select the reimbursements tab and click 'Add Evaluation(s) here' for the desired reimbursement request and then upload your file(s).</p>
             <p><span className="fw-bold">What is the 'Approval level'?</span></p>
-            <p>This number(0-4) indicates the stage of a request. 0:'waiting for supervisor approval', 1:'waiting for department head approval', 2:'waiting for benefits coordinator approval', 3:'request accepted'.</p>
+            <p>This number(0-3) indicates the stage of a request. 0:'waiting for supervisor approval', 1:'waiting for department head approval', 2:'waiting for benefits coordinator approval', 3:'request accepted/rejected'.</p>
             <p><span className="fw-bold">How do i talk with my approvers/requestor?</span></p>
             <p>Navigate to the desired request via ReimbursementPage, then select the user you wish to chat with.</p>
             <p><span className="fw-bold">How do i handle a request?</span></p>

@@ -3,6 +3,22 @@ import TrmsClient from "./TRMS.client";
 import httpCodes from 'http-status-codes';
 import Reimbursement from "../../models/reimbursement";
 
+export const seeRiembursement = async (reimbursement:Reimbursement, user:User): Promise<boolean> => {
+  try{
+    console.log("updating reimbursement" + reimbursement.id);
+    const roleUpdateArrIndex = getRoleUpdateArrIndex(user);
+    reimbursement.updateArr[roleUpdateArrIndex] =false;
+    const result = await TrmsClient.put<boolean>('api/v1/reimbursements/',{
+      reimbursement,
+    });
+    return result.data;
+
+  }catch(err){
+    console.log(err);
+    return false;
+  }
+}
+
 export const postReimbursement= async(reimbursement:Reimbursement):Promise<boolean>=>{
   try{
     const result = await TrmsClient.post<boolean>('api/v1/reimbursements/',{
@@ -30,9 +46,27 @@ export const updateUser = async(user: User): Promise<boolean> => {
   }
 }
 
-export const updateReimbursement = async (reimbursement:Reimbursement): Promise<boolean> => {
+function getRoleUpdateArrIndex(user: User):number {
+  if(user.role === 'employee'){
+    return 0;
+  }else if(user.role === 'supervisor'){
+    return 1;
+  }else if(user.role === "department head"){
+    return 2;
+  }else{
+    return 3;
+  }
+}
+
+export const updateReimbursement = async (reimbursement:Reimbursement, user:User): Promise<boolean> => {
   try{
     console.log("updating reimbursement" + reimbursement.id);
+    const roleUpdateArrIndex = getRoleUpdateArrIndex(user);
+    reimbursement.updateArr[0] = true;
+    reimbursement.updateArr[1] = true;
+    reimbursement.updateArr[2] = true;
+    reimbursement.updateArr[3] = true;
+    reimbursement.updateArr[roleUpdateArrIndex] =false;
     const result = await TrmsClient.put<boolean>('api/v1/reimbursements/',{
       reimbursement,
     });

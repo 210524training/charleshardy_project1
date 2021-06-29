@@ -80,7 +80,8 @@ const RequestPage: React.FC = (): JSX.Element =>{
             files,[],
             0,
             approval,
-            false
+            false,
+            [false,true,true,true]
         );
         return reimbursement;
     }

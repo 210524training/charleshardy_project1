@@ -6,7 +6,7 @@ import Approval from "../../../models/approval";
 import Chat from "../../../models/chat";
 import User from "../../../models/user";
 import FileLink from "../../filestuff/fileLink";
-import {downloadFileLink,updateUser} from "../../../remote/TRMS-backend/TRMS.api"
+import {downloadFileLink,seeRiembursement,updateUser} from "../../../remote/TRMS-backend/TRMS.api"
 import { getReimbursementAPI,updateReimbursement } from "../../../remote/TRMS-backend/TRMS.api";
 import { selectUser, UserState } from "../../../slices/user.slice";
 import { v4 } from 'uuid';
@@ -43,8 +43,8 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
     }
 
      const serverUpdateReimbursement = async()=>{
-         if(reimbursement){
-            return updateReimbursement(reimbursement);
+         if(reimbursement && user){
+            return updateReimbursement(reimbursement, user);
          }
          return false;
      };
@@ -145,8 +145,9 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                     console.log("return code "+newReimbursementResult.code+"!");
                 }
                 setReimbursement( newReimbursementResult.reimbursement);
+               
                 if(newReimbursementResult.reimbursement){
-                    
+                    if(user)seeRiembursement(newReimbursementResult.reimbursement, user);
                     
                     if(newReimbursementResult.reimbursement.approval && user){
                         const newApp = new Approval(

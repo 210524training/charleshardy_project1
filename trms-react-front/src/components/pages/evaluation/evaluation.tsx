@@ -19,8 +19,8 @@ const EvaluationPage: React.FC = (): JSX.Element => {
     if(!user){ history.push('/');}
 
     const serverUpdateReimbursement = async(reim: Reimbursement)=>{
-        if(reim){
-           return updateReimbursement(reim);
+        if(reim && user){
+           return updateReimbursement(reim,user);
         }
         return false;
     };
