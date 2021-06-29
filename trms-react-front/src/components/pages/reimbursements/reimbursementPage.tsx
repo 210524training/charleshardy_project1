@@ -49,8 +49,11 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
          return false;
      };
 
-    
-
+    const getCurrDate=()=>{
+        const now = new Date(Date.now());
+        const d =`${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()}`;
+        return d;
+    }
     const handleCostChange = (e: ChangeEvent<HTMLInputElement>) => {
         setNewCost(Number(e.target.value));
     };
@@ -222,6 +225,15 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
             
         }else{
             newApproval.level = getRoleLevel(user.role);
+            const today = getCurrDate();
+            if(user.role === 'supervisor'){
+                newApproval.dates.d1 = today;
+            }else if(user.role === 'department head'){
+                newApproval.dates.d2 = today;
+            }else if(user.role === 'benefits coordinator'){
+                newApproval.dates.d3 = today;
+
+            }
         }
         
 

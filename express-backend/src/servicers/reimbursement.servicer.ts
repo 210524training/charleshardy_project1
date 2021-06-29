@@ -133,16 +133,18 @@ class ReimbursementService{
     }
 
     private updateReim(reimbursement:Reimbursement){
+        let hasChanged = false;
         if(reimbursement.resolved){
             return;
         }
         if(this.isUrgent(reimbursement.eventdate)){
+            hasChanged = true;
             reimbursement.approval.urgent=true;
         }
         let date :string = '';
         const level :number =reimbursement.approval.level;
         if(level ===0){
-            date = reimbursement.approval.dates.d0; 
+            date = reimbursement.approval.dates.d0;
         }else if(level ===1){
             date = reimbursement.approval.dates.d1;
         }else if(level ===2){
@@ -156,11 +158,13 @@ class ReimbursementService{
                     date = reimbursement.approval.dates.d0;
                     reimbursement.approval.level = reimbursement.approval.level + 1;
                     reimbursement.approval.dates.d1 = this.getCurrDate();
+                    hasChanged = true;
     
                 }else if(level ===1){
                     date = reimbursement.approval.dates.d1;
                     reimbursement.approval.level = reimbursement.approval.level + 1;
                     reimbursement.approval.dates.d2 = this.getCurrDate();
+                    hasChanged = true;
                     
                 }else if(level ===2){
                     date = reimbursement.approval.dates.d2;
@@ -169,8 +173,7 @@ class ReimbursementService{
             }
         }
 
-        
-
+        if(hasChanged)reimbursement.updateArr = [true,true,true,true];
         this.updateReimbursement(reimbursement);
 
     }
