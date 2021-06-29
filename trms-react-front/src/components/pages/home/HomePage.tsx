@@ -15,7 +15,7 @@ const Component: React.FC = (): JSX.Element => {
                     <p><span className="fw-bold">Last Name:</span> {`${user.lastName}`}</p>
                     <p><span className="fw-bold">Username:</span> {`${user.username}`}</p>
                     <p><span className="fw-bold">Role:</span> {`${user.role}`}</p>
-                    {(user.role!=='benefits coordinator')?(<></>):(<p><span className="fw-bold">Department:</span> {`${user.department}`}</p>)}
+                    {(user.role==='benefits coordinator')?(<></>):(<p><span className="fw-bold">Department:</span> {`${user.department}`}</p>)}
                     {(user.role!=='employee')?(<></>):(<p><span className="fw-bold">Avaliable Reimbursement Funds:</span> {`${user.reimbursementFunds}`}</p>)}
                 </div>
             </div>

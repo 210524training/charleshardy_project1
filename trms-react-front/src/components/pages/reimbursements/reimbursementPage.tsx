@@ -30,6 +30,7 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
 
     const [reimResponse,setReimResponse] = useState<boolean>(false);
     const [final,setFinal] = useState<boolean>(false);
+    const [showMod, setShowMod] = useState<boolean>(false);
 
     const [fileLinks,setFileLinks]=useState<JSX.Element[]>([]);
     const [evalLinks,setEvalLinks]=useState<JSX.Element[]>([]);
@@ -89,7 +90,11 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
         const locBlock = document.getElementById("inputReason");
         const locBlockLabel = document.getElementById("inputReasonLabel");
         const newAction = (acceptedOn === 'accepted')?('accepted'):((acceptedOn ==='rejected')?('rejected'):('mod-accepted'));
-
+        if(newAction === 'mod-accepted'){
+            setShowMod(true);
+        }else{
+            setShowMod(false);
+        }
         if(locBlock && locBlockLabel){
             locBlock.style.display = display;
             locBlockLabel.style.display = display;
@@ -316,8 +321,8 @@ const ReimbursementPage: React.FC = (): JSX.Element => {
                                             <>
                                             <input className="form-check-input" type="radio" id="mod-accepted" name="response"  value="mod-accepted"/>
                                             <label className="form-check-label me-2" htmlFor="mod-accepted">Accept and Modify reimbursement</label>
-                                            <br/><label htmlFor="inputCost">Enter Adjusted Reimbursement:</label>
-                                            <input className="form-control" placeholder="Enter cost of activity" type="number" id="inputCost" name="inputCost" min="0" onChange={handleCostChange} ></input>
+                                            {!showMod?(<></>):(<><br/><label htmlFor="inputCost">Enter Adjusted Reimbursement:</label>
+                                            <input className="form-control" placeholder="Enter cost of activity" type="number" id="inputCost" name="inputCost" min="0" onChange={handleCostChange} ></input></>)}
                                             </>
                                         ))}
                                     </div>

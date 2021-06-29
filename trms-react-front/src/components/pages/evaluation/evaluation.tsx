@@ -63,7 +63,7 @@ const EvaluationPage: React.FC = (): JSX.Element => {
                     console.log("return code "+newReimbursementResult.code+"!");
                 }
                 setReimbursement( newReimbursementResult.reimbursement);
-                if(newReimbursementResult.reimbursement)setFiles(newReimbursementResult.reimbursement.evaluations);
+                if(newReimbursementResult.reimbursement)setFiles([]);
                 
             }     
             return () => { isMounted = false }; // use cleanup to toggle value, if unmounted
